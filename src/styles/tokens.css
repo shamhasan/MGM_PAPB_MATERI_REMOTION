@@ -1,0 +1,32 @@
+:root {
+  /* Lapisan (paten, tidak boleh diubah) */
+  --c-ui: #3B82F6;  /* UI / Composable */
+  --c-vm: #F97316;  /* ViewModel */
+  --c-repo: #22C55E;  /* Repository */
+  --c-ds: #1E3A8A;  /* Data Source */
+
+  /* Warna teks DI ATAS warna lapisan */
+  --on-ui: #FFFFFF;
+  --on-vm: #0F172A;
+  --on-repo: #0F172A;
+  --on-ds: #FFFFFF;
+
+  /* Latar */
+  --bg-dark: #191A21;  /* Scene 1, awal Scene 3 */
+  --editor-bg: #282A36;  /* jendela editor & kartu kode (Dracula) */
+  --bg-light: #F8FAFC;  /* Scene 2, akhir Scene 3, 4, 5 */
+
+  /* Teks */
+  --text-dark: #0F172A;
+  --text-light: #F8F8F2;
+  --text-muted: #64748B;
+
+  /* Efek */
+  --laser: #EF4444;        /* garis potong + border kartu peringatan */
+  --arrow-event: #0F172A;  /* panah user event */
+  --arrow-state: #A855F7;  /* panah UI state */
+
+  /* Layout */
+  --safe: 80px;
+  --gap: 40px;
+}
