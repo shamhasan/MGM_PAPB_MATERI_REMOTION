@@ -1,7 +1,7 @@
 import { useCurrentFrame } from "remotion";
 import { lookup } from "./stops";
 
-export function useStopProgress(scene: number, stop: number): number {
+export function useStopProgress(scene: number | string, stop: number): number {
   const frame = useCurrentFrame();
   const { start, end } = lookup(scene, stop);
   if (end === start) return frame >= end ? 1 : 0;

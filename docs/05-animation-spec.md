@@ -14,6 +14,7 @@ Remotion tidak punya fitur "stops". Mekanismenya dibuat sendiri dengan model ber
 export const FPS = 30;
 
 // angka = frame transisi MENUJU stop tersebut (sama dengan 02-storyboard.md)
+// angka = frame transisi MENUJU stop tersebut (sama dengan 02-storyboard.md)
 export const SCENES = [
   { id: "spaghetti", stops: [0, 90, 24, 24, 24] },
   { id: "restaurant", stops: [18, 24, 24, 24, 24] },
@@ -30,6 +31,16 @@ export const SCENES = [
 ```
 
 Stop ber-frame 0 (selain yang pertama) otomatis lebur ke state sebelumnya karena nilai `end` sama.
+
+### 2. Animasi & Rendering Branding
+- **Watermark Persistent**:
+  - Menggunakan komponen `<Img />` dari `"remotion"`.
+  - Terpasang di level `Deck.tsx` dengan transisi warna adaptif (`isLightBg`).
+- **Header Branding (Scene 1 State 0)**:
+  - Muncul di frame 0 saat editor mock terbuka (dua logo + judul "PAPB — ARSITEKTUR").
+  - Menghilang secara halus (*fade-out*) saat dosen menekan Next untuk mengetik kode (State 1).
+
+
 
 ### `src/deck/useStopProgress.ts`
 

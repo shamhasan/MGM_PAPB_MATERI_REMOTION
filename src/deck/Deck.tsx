@@ -6,11 +6,12 @@ import { Scene2Restaurant } from "../scenes/Scene2Restaurant";
 import { SceneSplit } from "../scenes/SceneSplit";
 import { Scene5Flow } from "../scenes/Scene5Flow";
 import { Scene6TestChanges } from "../scenes/Scene6TestChanges";
+import { Watermark } from "../components/Watermark";
 
 export const Deck: React.FC = () => {
   const frame = useCurrentFrame();
 
-  // Tentukan state yang aktif
+  // Tentukan state yang aktif (0 s.d. 25)
   let currentStateIndex = 0;
   for (let i = 0; i < SETTLED.length; i++) {
     if (frame >= SETTLED[i]) {
@@ -50,21 +51,27 @@ export const Deck: React.FC = () => {
   // Scene 6 (Uji Perubahan): frame > s5End
   const isScene6Active = frame > s5End;
 
+  // Cek apakah background terang aktif
+  const isLightBg =
+    (frame >= s1End && frame < s2End) || frame >= s3SplitEnd;
+
   return (
     <div
       style={{
         width: 1920,
         height: 1080,
-        backgroundColor:
-          (frame >= s1End && frame < s2End) || frame >= s3SplitEnd
-            ? "var(--bg-light, #F8FAFC)"
-            : "var(--bg-dark, #191A21)",
+        backgroundColor: isLightBg
+          ? "var(--bg-light, #F8FAFC)"
+          : "var(--bg-dark, #191A21)",
         color: "var(--text-light, #F8F8F2)",
         fontFamily: "'Inter', sans-serif",
         position: "relative",
         overflow: "hidden",
       }}
     >
+      {/* Watermark Persistent di Pojok Kanan Atas */}
+      <Watermark isLightBg={isLightBg} />
+
       {/* Scene 1 (Spaghetti) */}
       {isScene1Active && (
         <div

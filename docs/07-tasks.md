@@ -56,3 +56,15 @@ Kerjakan berurutan. Di akhir tiap milestone: jalankan `npx tsc --noEmit` dan `np
 - Jalankan seluruh `06-acceptance.md`, termasuk uji offline dan uji maju-mundur.
 - Laporkan butir yang tidak lulus beserta penyebabnya.
 
+## M8 — Branding Terpadu & Watermark "SHAM"
+
+- Buat komponen `Watermark.tsx` menggunakan `<Img />` dari `"remotion"`.
+  - Ukuran logo diperbesar menjadi tinggi 38px (logo MGM & Curriculum).
+  - Teks font JetBrains Mono Bold diperbesar menjadi 18px (teks "SHAM" kapital).
+  - Posisi di pojok kanan atas `top: 32px, right: 60px` dengan warna adaptif gelap/terang.
+- Integrasikan header branding (logo MGM & Curriculum + title "PAPB - ARSITEKTUR") pada Scene 1 State 0.
+- Integrasikan badge branding pada kartu modal penutup Scene 6 State 25.
+- Pastikan arsitektur 6 scene (26 state / 769 frame) tetap terjaga tanpa pergeseran index.
+- **Cek:** `npx tsc --noEmit` bersih, `npm run build:web` sukses, 26 state berjalan mulus dengan navigasi Next/Prev tanpa error `<img />`.
+
+

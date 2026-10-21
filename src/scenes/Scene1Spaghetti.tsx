@@ -7,6 +7,9 @@ import { CodeBlock } from "../components/CodeBlock";
 import { Callout } from "../components/Callout";
 import { WarningCard } from "../components/WarningCard";
 import { FPS } from "../deck/stops";
+import { Img } from "remotion";
+import logoCurriculum from "../assets/logo-curriculum.png";
+import logoMgm from "../assets/logo-mgm.png";
 
 export const Scene1Spaghetti: React.FC = () => {
   const frame = useCurrentFrame();
@@ -106,6 +109,12 @@ export const Scene1Spaghetti: React.FC = () => {
   });
   const callout2TranslateY = interpolate(sprCallout2, [0, 1], [16, 0]);
 
+  // Header branding perkuliahan pada Stop 0 (fades out saat mengetik di Stop 1)
+  const headerOpacity = interpolate(p1, [0, 0.4], [1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
   return (
     <div
       style={{
@@ -119,6 +128,66 @@ export const Scene1Spaghetti: React.FC = () => {
         overflow: "hidden",
       }}
     >
+      {/* Header Branding Perkuliahan (Stop 0) */}
+      {headerOpacity > 0 && (
+        <div
+          style={{
+            position: "absolute",
+            top: 24,
+            left: "var(--safe, 80px)",
+            display: "flex",
+            alignItems: "center",
+            gap: 16,
+            opacity: headerOpacity,
+            pointerEvents: "none",
+            zIndex: 10,
+          }}
+        >
+          <Img
+            src={logoMgm}
+            alt="MGM Logo"
+            style={{ height: 42, width: "auto", objectFit: "contain" }}
+          />
+          <Img
+            src={logoCurriculum}
+            alt="Curriculum Logo"
+            style={{ height: 42, width: "auto", objectFit: "contain" }}
+          />
+          <div
+            style={{
+              width: 1.5,
+              height: 28,
+              backgroundColor: "rgba(255, 255, 255, 0.2)",
+              margin: "0 4px",
+            }}
+          />
+          <div>
+            <h1
+              style={{
+                fontSize: 22,
+                fontWeight: 800,
+                margin: 0,
+                color: "#FFFFFF",
+                letterSpacing: "-0.01em",
+                fontFamily: "'Inter', sans-serif",
+              }}
+            >
+              PAPB — ARSITEKTUR
+            </h1>
+            <div
+              style={{
+                fontSize: 13,
+                color: "var(--text-muted, #94A3B8)",
+                fontFamily: "'JetBrains Mono', monospace",
+                fontWeight: 500,
+              }}
+            >
+              Modul Praktikum 06 — Arsitektur Aplikasi Android
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Editor Window */}
       <div
         style={{
@@ -130,7 +199,7 @@ export const Scene1Spaghetti: React.FC = () => {
         <EditorWindow>
           <CodeBlock
             code={codeText}
-            typeProgress={frame === 0 ? 0 : p1}
+            typeProgress={p1}
             frame={frame}
             layerOf={layerOf}
             lineEmphasis={p2 > 0 ? lineEmphasis : undefined}

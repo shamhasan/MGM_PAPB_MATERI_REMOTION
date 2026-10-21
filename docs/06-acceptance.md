@@ -25,7 +25,7 @@ Agen wajib memeriksa seluruh butir sebelum menyatakan selesai. Centang hanya yan
 
 | State | Harus terlihat                                                                                                                 |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------ |
-| 0     | Editor kosong                                                                                                                  |
+| 0     | Jendela editor mock kosong; memuat header branding perkuliahan (logo MGM, logo Curriculum, title "PAPB - ARSITEKTUR"); watermark persistent "SHAM" di pojok kanan atas |
 | 1     | Seluruh fungsi `DetailScreen` terketik penuh, 19 baris, tanpa komentar marker                                                  |
 | 2     | Hanya baris 3–9 yang terang; baris lain redup (0.3); callout "Ganti sumber data → ubah baris 3–9" di kanan, tidak menimpa kode |
 | 3     | Hanya baris 16–18 yang terang; callout berganti "Ubah tampilan → ubah baris 16–18"                                             |
@@ -44,7 +44,7 @@ Agen wajib memeriksa seluruh butir sebelum menyatakan selesai. Centang hanya yan
 | 22    | Banner Permintaan 3; hanya ViewModel menyala (diff `−`/`+` pesan error sebutkan ID); UI, Repo, DS redup bertanda "TETAP" |
 | 23    | Banner Permintaan 4; hanya UI menyala (diff `+` tampilkan angkatan); VM, Repo, DS redup bertanda "TETAP" |
 | 24    | Banner Hasil Akhir; keempat kartu menyala bersamaan bertanda "TERPADU" dengan kode bersih tanpa tanda diff yang terhubung (Data Source -> Repository -> ViewModel -> UI) |
-| 25    | Seluruh 4 layer menampilkan kode terupdate penuh (UI, ViewModel, Repository mengambil dari Data Source `mgm.org/list`) + modal kesimpulan arsitektur ("Mengapa Kita Memisahkan Lapisan?") |
+| 25    | Seluruh 4 layer menampilkan kode terupdate penuh (UI, ViewModel, Repository mengambil dari Data Source `mgm.org/list`) + modal kesimpulan arsitektur ("Mengapa Kita Memisahkan Lapisan?") dan badge branding |
 
 Tambahan untuk Scene 1:
 

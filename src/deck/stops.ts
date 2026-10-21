@@ -42,24 +42,33 @@ for (let sIdx = 0; sIdx < SCENES.length; sIdx++) {
   }
 }
 
-// SETTLED: number[] → nilai `end` unik & terurut = daftar state (harus 25 item)
+// SETTLED: number[] → nilai `end` unik & terurut = daftar state (harus 26 item)
 export const SETTLED: number[] = Array.from(
   new Set(TIMELINE.map((t) => t.end))
 ).sort((a, b) => a - b);
 
-// TOTAL_FRAMES = SETTLED.at(-1)! + 1 → durasi komposisi (745)
+// TOTAL_FRAMES = SETTLED.at(-1)! + 1 → durasi komposisi (769)
 export const TOTAL_FRAMES = SETTLED[SETTLED.length - 1] + 1;
 
 export function lookup(
-  sceneIndex: number,
+  scene: number | string,
   stopIndex: number
 ): { start: number; end: number } {
-  const entry = TIMELINE.find(
-    (item) => item.sceneIndex === sceneIndex && item.stopIndex === stopIndex
-  );
+  let entry: TimelineEntry | undefined;
+
+  if (typeof scene === "string") {
+    entry = TIMELINE.find(
+      (item) => item.sceneId === scene && item.stopIndex === stopIndex
+    );
+  } else {
+    entry = TIMELINE.find(
+      (item) => item.sceneIndex === scene && item.stopIndex === stopIndex
+    );
+  }
+
   if (!entry) {
     throw new Error(
-      `Stop not found for sceneIndex: ${sceneIndex}, stopIndex: ${stopIndex}`
+      `Stop not found for scene: ${scene}, stopIndex: ${stopIndex}`
     );
   }
   return { start: entry.start, end: entry.end };

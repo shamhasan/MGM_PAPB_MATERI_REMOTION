@@ -106,3 +106,20 @@ Pelayan `ConciergeBell` · Pencatat Pesanan `ClipboardList` · Bagian Pengadaan 
   - **✓ TETAP**: latar `rgba(100, 116, 139, 0.15)`, teks `#64748B`, font Inter 600 16px, border radius 8px, padding 4px 12px.
   - **✓ TERPADU** (State 24–25): latar `rgba(34, 197, 94, 0.2)`, teks `#16A34A` / `#4ADE80`, border `1px solid rgba(34, 197, 94, 0.4)`, font Inter 700 16px, border radius 8px, padding 4px 12px.
 - Kartu Rangkuman Penutup (Scene 6 Stop 5 / State 25): gaya modal kartu kontras di tengah (lebar 1240px, latar `#2B1B1B`, border 4px `--laser`, box-shadow kuat, teks `--text-light` 42px). Seluruh 4 kartu terpadu tetap tampak utuh di latar belakang.
+
+## 9. Watermark & Branding Logo
+
+- **Watermark Persistent (`src/components/Watermark.tsx`)**:
+  - Posisi: pojok kanan atas `top: 32px, right: 60px`, `z-index: 100`, `pointer-events: none`.
+  - Format: pill badge glassmorphism (`backdrop-filter: blur(12px)`, border radius 9999px, padding `8px 20px`, gap `14px`).
+  - **Ukuran Logo**: Tinggi **38px** (proporsional dan jelas terbaca di kanvas 1920×1080), memuat `logo-curriculum.png` dan `logo-mgm.png`.
+  - Divider: vertikal 1px, tinggi 24px.
+  - **Ukuran Teks**: Font JetBrains Mono Bold **18px**, teks **"SHAM"** kapital, letter-spacing `0.16em`.
+  - Warna adaptif:
+    - Di atas latar gelap: latar `rgba(255, 255, 255, 0.08)`, border `rgba(255, 255, 255, 0.15)`, teks `#FFFFFF`.
+    - Di atas latar terang: latar `rgba(15, 23, 42, 0.06)`, border `rgba(15, 23, 42, 0.12)`, teks `#0F172A`.
+  - **Wajib menggunakan `<Img />` dari package `"remotion"`** (bukan tag native `<img />`) untuk seluruh render logo agar terikat sinkron dengan frame rendering Remotion tanpa error/warning linter.
+- **Header Branding di Scene 1 State 0**:
+  - Logo MGM & Logo Curriculum (tinggi 44px) + judul **"PAPB — ARSITEKTUR"** (Inter Bold 36px) di atas jendela editor.
+- **Badge Branding di Modal Scene 6 State 25**:
+  - Kedua logo (tinggi 28px) + teks "PAPB - ARSITEKTUR" di pojok kanan atas header modal penutup.

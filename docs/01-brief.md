@@ -35,11 +35,13 @@ Arah dependency: `UI → ViewModel → Repository → Data Source`. User event b
 
 6 scene, 26 state (25 kali Next), estimasi bawaan ±13 menit presentasi:
 
-1. Spageti Code (masalah: semua perubahan jatuh ke satu fungsi)
+1. Spageti Code (masalah: semua perubahan jatuh ke satu fungsi; pembuka memuat header branding perkuliahan: logo MGM, logo Curriculum, title "PAPB - ARSITEKTUR")
 2. Filosofi Restoran (analogi 4 peran)
 3. Tebas Kode (pemotongan) dan 4. Empat Lapis (istilah + isi) — satu kanvas
 5. Aliran Eksekusi (event masuk, state keluar)
-6. Uji Perubahan (bukti pemisahan tanggung jawab: 4 permintaan perubahan hanya menyentuh 1 lapisan terisolasi termasuk REST API `mgm.org/list`, integrasi 4 lapisan terpadu yang saling bersambung, serta kesimpulan penutup dengan seluruh 4 layer terupdate)
+6. Uji Perubahan (bukti pemisahan tanggung jawab: 4 permintaan perubahan hanya menyentuh 1 lapisan terisolasi termasuk REST API `mgm.org/list`, integrasi 4 lapisan terpadu yang saling bersambung, serta kesimpulan penutup dengan seluruh 4 layer terupdate dan badge branding)
+
+Seluruh scene dilengkapi **Watermark Persistent** di pojok kanan atas memuat logo Curriculum mini + logo MGM mini + teks kapital "SHAM".
 
 ## 6. Glosarium
 

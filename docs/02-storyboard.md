@@ -144,10 +144,9 @@ Setiap stop: kartu yang sebelumnya fokus kembali ke ukuran normal tetapi labelny
 
 ## Catatan revisi dari versi sebelumnya
 
-- Scene 6 diperbarui menjadi 6 stop (State 20–25, total frame 768, durasi 769).
-  - Stop 0 (State 20): Menggunakan REST API endpoint `mgm.org/list` pada Data Source.
-  - Stop 4 (State 24): Menampilkan keempat kartu terpadu serentak dengan kode bersih yang saling mereferensikan secara end-to-end.
-  - Stop 5 (State 25): Kartu rangkuman penutup kontras dengan Scene 1, dengan keempat kartu terupdate tetap tampak di belakang.
-- Scene 1: dari 3 state menjadi 5. "Fatal Exception: UI freeze" dihapus. Diganti sorotan baris 3–9 lalu 16–18 dengan callout, ditutup kartu "Satu fungsi, banyak alasan untuk berubah".
-- Scene 2 narasi: "dapur" diganti "gudang" (analogi tidak punya dapur).
-- Scene 3/4/5: ditambah detail durasi, warna, dan aturan klik agar tidak ambigu.
+- **Penyelarasan 26 State & Branding**: Seluruh 6 scene kembali ke index dan kalkulasi frame asli (State 0 s.d. 25, total frame 768 / durasi 769 frame).
+- **Watermark Persistent**: Terletak di pojok kanan atas di seluruh scene dengan ukuran logo diperbesar (tinggi 38px) dan teks font JetBrains Mono Bold diperbesar (18px) kapital "SHAM", menggunakan komponen `<Img />` Remotion.
+- **Branding di Scene 1 State 0**: Header branding elegan memuat logo MGM, logo Curriculum, dan title **"PAPB - ARSITEKTUR"** saat editor mock terbuka.
+- **Branding di Scene 6 State 25**: Badge logo MGM + Curriculum + title "PAPB - ARSITEKTUR" pada kartu modal penutup rangkuman.
+- Scene 6: 6 stop (State 20–25), menampilkan kode terpadu dan rangkuman penutup.
+

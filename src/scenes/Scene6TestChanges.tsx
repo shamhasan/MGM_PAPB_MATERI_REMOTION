@@ -1,9 +1,11 @@
 import React from "react";
-import { spring, interpolate, Easing } from "remotion";
+import { spring, interpolate, Easing, Img } from "remotion";
 import { useStopProgress } from "../deck/useStopProgress";
 import { FPS } from "../deck/stops";
 import { DiffCodeBlock, DiffLine } from "../components/DiffCodeBlock";
 import { CheckCircle2, Zap, AlertTriangle, Layers } from "lucide-react";
+import logoCurriculum from "../assets/logo-curriculum.png";
+import logoMgm from "../assets/logo-mgm.png";
 
 type Layer = "ui" | "viewmodel" | "repository" | "datasource";
 
@@ -55,8 +57,8 @@ const LAYERS: LayerMeta[] = [
 const NORMAL_CODE: Record<Layer, DiffLine[]> = {
   datasource: [
     { type: "normal", text: "val students = listOf(" },
-    { type: "normal", text: "    Student(2026, \"Alya Putri\", \"TI\", 2026)," },
-    { type: "normal", text: "    Student(2027, \"Bima Pratama\", \"TI\", 2026)" },
+    { type: "normal", text: '    Student(2026, "Alya Putri", "TI", 2026),' },
+    { type: "normal", text: '    Student(2027, "Bima Pratama", "TI", 2026)' },
     { type: "normal", text: ")" },
   ],
   repository: [
@@ -64,14 +66,20 @@ const NORMAL_CODE: Record<Layer, DiffLine[]> = {
     { type: "normal", text: "    dataSource.getStudentById(id)" },
   ],
   viewmodel: [
-    { type: "normal", text: "var student by remember { mutableStateOf(null) }" },
+    {
+      type: "normal",
+      text: "var student by remember { mutableStateOf(null) }",
+    },
     { type: "normal", text: "LaunchedEffect(studentId) {" },
-    { type: "normal", text: "    student = repository.getStudentById(studentId)" },
+    {
+      type: "normal",
+      text: "    student = repository.getStudentById(studentId)",
+    },
     { type: "normal", text: "}" },
   ],
   ui: [
     { type: "normal", text: "Column {" },
-    { type: "normal", text: "    Text(student?.name ?: \"Mencari...\")" },
+    { type: "normal", text: '    Text(student?.name ?: "Mencari...")' },
     { type: "normal", text: "}" },
   ],
 };
@@ -80,29 +88,38 @@ const NORMAL_CODE: Record<Layer, DiffLine[]> = {
 const DIFF_CODE: Record<Layer, DiffLine[]> = {
   datasource: [
     { type: "del", text: "val students = listOf(" },
-    { type: "del", text: "    Student(2026, \"Alya Putri\", \"TI\", 2026)," },
-    { type: "del", text: "    Student(2027, \"Bima Pratama\", \"TI\", 2026)" },
+    { type: "del", text: '    Student(2026, "Alya Putri", "TI", 2026),' },
+    { type: "del", text: '    Student(2027, "Bima Pratama", "TI", 2026)' },
     { type: "del", text: ")" },
     { type: "add", text: "fun getStudents(): List<Student> =" },
-    { type: "add", text: "    httpClient.get(\"mgm.org/list\")" },
+    { type: "add", text: '    httpClient.get("mgm.org/list")' },
   ],
   repository: [
     { type: "normal", text: "fun getStudentById(id: Int): Student? =" },
     { type: "del", text: "    dataSource.getStudentById(id)" },
     { type: "add", text: "    if (id <= 0) null" },
-    { type: "add", text: "    else dataSource.getStudents().find { it.id == id }" },
+    {
+      type: "add",
+      text: "    else dataSource.getStudents().find { it.id == id }",
+    },
   ],
   viewmodel: [
     { type: "normal", text: "LaunchedEffect(studentId) {" },
-    { type: "normal", text: "    val res = repository.getStudentById(studentId)" },
-    { type: "del", text: "    errorMessage = \"Mahasiswa tidak ditemukan\"" },
-    { type: "add", text: "    errorMessage = \"Mahasiswa #$studentId tidak ditemukan\"" },
+    {
+      type: "normal",
+      text: "    val res = repository.getStudentById(studentId)",
+    },
+    { type: "del", text: '    errorMessage = "Mahasiswa tidak ditemukan"' },
+    {
+      type: "add",
+      text: '    errorMessage = "Mahasiswa #$studentId tidak ditemukan"',
+    },
     { type: "normal", text: "}" },
   ],
   ui: [
     { type: "normal", text: "Column {" },
-    { type: "normal", text: "    Text(student?.name ?: \"Mencari...\")" },
-    { type: "add", text: "    Text(\"Angkatan: ${student?.year ?: \\\"-\\\"}\")" },
+    { type: "normal", text: '    Text(student?.name ?: "Mencari...")' },
+    { type: "add", text: '    Text("Angkatan: ${student?.year ?: \\"-\\"}")' },
     { type: "normal", text: "}" },
   ],
 };
@@ -115,7 +132,7 @@ const UNIFIED_CODE: Record<Layer, DiffLine[]> = {
     { type: "normal", text: "    private val client: HttpClient" },
     { type: "normal", text: ") {" },
     { type: "normal", text: "    fun getStudents(): List<Student> =" },
-    { type: "normal", text: "        client.get(\"mgm.org/list\")" },
+    { type: "normal", text: '        client.get("mgm.org/list")' },
     { type: "normal", text: "}" },
   ],
   repository: [
@@ -124,19 +141,31 @@ const UNIFIED_CODE: Record<Layer, DiffLine[]> = {
     { type: "normal", text: ") {" },
     { type: "normal", text: "    fun getStudentById(id: Int): Student? =" },
     { type: "normal", text: "        if (id <= 0) null" },
-    { type: "normal", text: "        else ds.getStudents().find { it.id == id }" },
+    {
+      type: "normal",
+      text: "        else ds.getStudents().find { it.id == id }",
+    },
     { type: "normal", text: "}" },
   ],
   viewmodel: [
     { type: "normal", text: "class DetailViewModel(" },
     { type: "normal", text: "    private val repo: StudentRepository" },
     { type: "normal", text: ") {" },
-    { type: "normal", text: "    var student by mutableStateOf<Student?>(null)" },
-    { type: "normal", text: "    var errorMessage by mutableStateOf<String?>(null)" },
+    {
+      type: "normal",
+      text: "    var student by mutableStateOf<Student?>(null)",
+    },
+    {
+      type: "normal",
+      text: "    var errorMessage by mutableStateOf<String?>(null)",
+    },
     { type: "normal", text: "    fun loadStudent(id: Int) {" },
     { type: "normal", text: "        student = repo.getStudentById(id)" },
     { type: "normal", text: "        if (student == null)" },
-    { type: "normal", text: "            errorMessage = \"Mahasiswa #$id tidak ditemukan\"" },
+    {
+      type: "normal",
+      text: '            errorMessage = "Mahasiswa #$id tidak ditemukan"',
+    },
     { type: "normal", text: "    }" },
     { type: "normal", text: "}" },
   ],
@@ -144,8 +173,14 @@ const UNIFIED_CODE: Record<Layer, DiffLine[]> = {
     { type: "normal", text: "@Composable" },
     { type: "normal", text: "fun DetailScreen(vm: DetailViewModel) {" },
     { type: "normal", text: "    Column {" },
-    { type: "normal", text: "        Text(vm.student?.name ?: vm.errorMessage ?: \"...\")" },
-    { type: "normal", text: "        Text(\"Angkatan: ${vm.student?.year ?: \\\"-\\\"}\")" },
+    {
+      type: "normal",
+      text: '        Text(vm.student?.name ?: vm.errorMessage ?: "...")',
+    },
+    {
+      type: "normal",
+      text: '        Text("Angkatan: ${vm.student?.year ?: \\"-\\"}")',
+    },
     { type: "normal", text: "    }" },
     { type: "normal", text: "}" },
   ],
@@ -172,10 +207,15 @@ export const Scene6TestChanges: React.FC = () => {
   // Stop 0: datasource, Stop 1: repository, Stop 2: viewmodel, Stop 3: ui
   // Stop 4 & 5: seluruh layer terupdate utuh
   const targetLayer: Layer | null =
-    activeStop === 0 ? "datasource" :
-    activeStop === 1 ? "repository" :
-    activeStop === 2 ? "viewmodel" :
-    activeStop === 3 ? "ui" : null;
+    activeStop === 0
+      ? "datasource"
+      : activeStop === 1
+        ? "repository"
+        : activeStop === 2
+          ? "viewmodel"
+          : activeStop === 3
+            ? "ui"
+            : null;
 
   const isUnified = activeStop >= 4;
 
@@ -316,7 +356,13 @@ export const Scene6TestChanges: React.FC = () => {
                 : "var(--c-repo, #22C55E)",
             }}
           />
-          <span style={{ fontSize: 16, fontWeight: 600, color: "var(--text-dark, #0F172A)" }}>
+          <span
+            style={{
+              fontSize: 16,
+              fontWeight: 600,
+              color: "var(--text-dark, #0F172A)",
+            }}
+          >
             {isUnified ? "4/4 Sukses Teruji" : "1 Permintaan = 1 Lapisan"}
           </span>
         </div>
@@ -431,12 +477,14 @@ export const Scene6TestChanges: React.FC = () => {
                 height: 560,
                 backgroundColor: "var(--editor-bg, #282A36)",
                 borderRadius: 18,
-                border: isTarget || isUnified
-                  ? `3px solid ${layer.bgHex}`
-                  : "1px solid rgba(0, 0, 0, 0.12)",
-                boxShadow: isTarget || isUnified
-                  ? `0 0 20px ${layer.bgHex}40, 0 16px 36px rgba(0, 0, 0, 0.15)`
-                  : "0 8px 24px rgba(0, 0, 0, 0.06)",
+                border:
+                  isTarget || isUnified
+                    ? `3px solid ${layer.bgHex}`
+                    : "1px solid rgba(0, 0, 0, 0.12)",
+                boxShadow:
+                  isTarget || isUnified
+                    ? `0 0 20px ${layer.bgHex}40, 0 16px 36px rgba(0, 0, 0, 0.15)`
+                    : "0 8px 24px rgba(0, 0, 0, 0.06)",
                 transform: isTarget ? "scale(1.025)" : "scale(1)",
                 opacity: isDimmed ? 0.35 : 1,
                 display: "flex",
@@ -567,20 +615,20 @@ export const Scene6TestChanges: React.FC = () => {
                   backgroundColor: isUnified
                     ? "rgba(16, 185, 129, 0.15)"
                     : isTarget
-                    ? "rgba(239, 68, 68, 0.15)"
-                    : "rgba(0, 0, 0, 0.1)",
+                      ? "rgba(239, 68, 68, 0.15)"
+                      : "rgba(0, 0, 0, 0.1)",
                   color: isUnified
                     ? "#10B981"
                     : isTarget
-                    ? "var(--laser, #EF4444)"
-                    : "#64748B",
+                      ? "var(--laser, #EF4444)"
+                      : "#64748B",
                 }}
               >
                 {isUnified
                   ? "✓ Terhubung & teruji penuh"
                   : isTarget
-                  ? "✓ Hanya file ini yang perlu diedit"
-                  : "✓ 0 baris kode diubah"}
+                    ? "✓ Hanya file ini yang perlu diedit"
+                    : "✓ 0 baris kode diubah"}
               </div>
             </div>
           );
@@ -620,7 +668,11 @@ export const Scene6TestChanges: React.FC = () => {
               borderBottom: "1px solid rgba(239, 68, 68, 0.35)",
             }}
           >
-            <AlertTriangle size={46} color="var(--laser, #EF4444)" strokeWidth={2.5} />
+            <AlertTriangle
+              size={46}
+              color="var(--laser, #EF4444)"
+              strokeWidth={2.5}
+            />
             <h2
               style={{
                 fontSize: 46,
@@ -632,6 +684,40 @@ export const Scene6TestChanges: React.FC = () => {
             >
               Mengapa Kita Memisahkan Lapisan?
             </h2>
+            <div
+              style={{
+                marginLeft: "auto",
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                backgroundColor: "rgba(0, 0, 0, 0.3)",
+                padding: "6px 16px",
+                borderRadius: 12,
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+              }}
+            >
+              <Img
+                src={logoMgm}
+                alt="MGM"
+                style={{ height: 26, width: "auto" }}
+              />
+              <Img
+                src={logoCurriculum}
+                alt="Curriculum"
+                style={{ height: 26, width: "auto" }}
+              />
+              <span
+                style={{
+                  fontSize: 13,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontWeight: 700,
+                  color: "#94A3B8",
+                  letterSpacing: "0.1em",
+                }}
+              >
+                PAPB - ARSITEKTUR
+              </span>
+            </div>
           </div>
 
           {/* Kontras Comparison */}
@@ -665,8 +751,18 @@ export const Scene6TestChanges: React.FC = () => {
               >
                 ✕
               </div>
-              <div style={{ fontSize: 28, lineHeight: 1.35, color: "var(--text-light, #F8F8F2)" }}>
-                <strong style={{ color: "#F87171" }}>Versi Spageti (Scene 1):</strong> 4 permintaan mengedit fungsi yang sama. Ubah satu hal, fitur lain berisiko ikut rusak.
+              <div
+                style={{
+                  fontSize: 28,
+                  lineHeight: 1.35,
+                  color: "var(--text-light, #F8F8F2)",
+                }}
+              >
+                <strong style={{ color: "#F87171" }}>
+                  Versi Spageti (Scene 1):
+                </strong>{" "}
+                4 permintaan mengedit fungsi yang sama. Ubah satu hal, fitur
+                lain berisiko ikut rusak.
               </div>
             </div>
 
@@ -699,8 +795,18 @@ export const Scene6TestChanges: React.FC = () => {
               >
                 ✓
               </div>
-              <div style={{ fontSize: 28, lineHeight: 1.35, color: "var(--text-light, #F8F8F2)" }}>
-                <strong style={{ color: "#4ADE80" }}>Arsitektur 4 Lapis (Scene 6):</strong> Tiap permintaan hanya mengubah 1 lapisan terisolasi. 3 lapisan lainnya 100% aman!
+              <div
+                style={{
+                  fontSize: 28,
+                  lineHeight: 1.35,
+                  color: "var(--text-light, #F8F8F2)",
+                }}
+              >
+                <strong style={{ color: "#4ADE80" }}>
+                  Arsitektur 4 Lapis (Scene 6):
+                </strong>{" "}
+                Tiap permintaan hanya mengubah 1 lapisan terisolasi. 3 lapisan
+                lainnya 100% aman!
               </div>
             </div>
 
@@ -733,8 +839,16 @@ export const Scene6TestChanges: React.FC = () => {
               >
                 ★
               </div>
-              <div style={{ fontSize: 28, lineHeight: 1.35, color: "var(--text-light, #F8F8F2)" }}>
-                <strong style={{ color: "#60A5FA" }}>Materi Modul 07+:</strong> Mengganti sumber data ke Room Database atau REST API jaringan hanya menyentuh Data Source.
+              <div
+                style={{
+                  fontSize: 28,
+                  lineHeight: 1.35,
+                  color: "var(--text-light, #F8F8F2)",
+                }}
+              >
+                <strong style={{ color: "#60A5FA" }}>Materi Modul 07+:</strong>{" "}
+                Mengganti sumber data ke Room Database atau REST API jaringan
+                hanya menyentuh Data Source.
               </div>
             </div>
           </div>
