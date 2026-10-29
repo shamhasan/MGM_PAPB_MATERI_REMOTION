@@ -1,65 +1,58 @@
-# 01 — Project Brief: Deck Interaktif Arsitektur Android
+# 01 — Brief: Deck Interaktif Modul 07 (REST API & Retrofit)
 
 ## 1. Tujuan
+Alat bantu ajar interaktif yang menunjukkan **bagaimana data dari internet berubah wujud** sampai tampil di layar, dan **di mana batas tanggung jawab tiap layer**. Praktikan tidak boleh bingung membedakan peran: Retrofit, DTO, mapper, repository, ViewModel, dan UI.
 
-Alat bantu ajar visual untuk menunjukkan **mengapa dan bagaimana** kode Android satu file dipecah menjadi 4 lapis (UI, ViewModel, Repository, Data Source). Dosen mengendalikan jalannya animasi langkah demi langkah tanpa berpindah slide statis.
+## 2. Hubungan dengan Modul 06
+Modul 07 mengganti sumber data in-memory dengan REST API tanpa meruntuhkan arsitektur Modul 06. Deck ini adalah lanjutan: pada Modul 06 (Scene 6) sudah dijanjikan bahwa saat sumber data diganti ke REST, Repository dan ViewModel menyesuaikan dan UI tetap tidak mengenal sumber data. Deck ini membuktikannya.
 
-## 2. Audiens
+## 3. Audiens
+Mahasiswa PAPB FILKOM UB yang sudah menyelesaikan Modul 06 (UI, ViewModel, Repository, Data Source).
 
-Mahasiswa FILKOM UB pada mata kuliah Pemrograman Aplikasi Perangkat Bergerak. Sudah paham sintaks dasar Kotlin/Compose, belum paham pemisahan arsitektur.
+## 4. Sumber kebenaran materi
+Modul Praktikum 07. Nama di layar harus sama dengan modul:
 
-## 3. Sumber kebenaran materi
+| Bagian | Nama di modul |
+|---|---|
+| Endpoint uji | `https://dummyjson.com/users?limit=10` |
+| DTO | `UserDto(id, firstName, lastName, email, university)`, `UserResponse(users, total, skip, limit)` |
+| Model aplikasi | `Student(id, name, email, university)` (sebelumnya program/year di Modul 06) |
+| Mapper | `fun UserDto.toStudent()` |
+| Retrofit | `StudentApiService` (`@GET("users")`, `@GET("users/{id}")`), `RetrofitClient` |
+| Remote Data Source | `StudentRemoteDataSource` (`Call.enqueue`, `Result<T>`) |
+| Repository | `StudentRepository`, `DefaultStudentRepository` (callback + pemetaan DTO → Student) |
+| ViewModel/State | `HomeViewModel`, `HomeUiState`, `DetailViewModel`, `DetailUiState` (`isLoading`, `errorMessage`) |
 
-Modul Praktikum 06 — Arsitektur Aplikasi Android. Nama yang dipakai di layar harus sama dengan modul:
+Arah dependency: `UI → ViewModel → Repository → Remote Data Source → REST API`. Event ke kanan, response/state ke kiri.
 
-| Lapisan     | Nama di Modul 06                                | Tanggung jawab (kata modul, diringkas)                        |
-| ----------- | ----------------------------------------------- | ------------------------------------------------------------- |
-| UI          | `DetailScreen` (Composable)                     | Menampilkan state, mengirim event, tidak memuat data langsung |
-| ViewModel   | `DetailViewModel`, `DetailUiState`              | State holder tingkat layar, memanggil repository              |
-| Repository  | `StudentRepository`, `DefaultStudentRepository` | Satu pintu akses data                                         |
-| Data Source | `StudentLocalDataSource` / `StudentRemoteDataSource` | Sumber data (in-memory list / endpoint REST API `mgm.org/list`) |
+## 5. Cakupan (8 scene)
+Lima poin inti dari permintaan dosen, ditambah tiga scene pendukung:
+1. Rekap: dari in-memory ke REST (pendukung)
+2. Siklus request-response HTTP
+3. Aliran data lintas layer dan larangan jalan pintas
+4. Transformasi DTO ke Student
+5. Callback asinkron (`enqueue`, `onResponse`, `onFailure`, `Result`)
+6. Tiga kondisi layar (loading, error, sukses)
+7. Dari mana error berasal? (pendukung, boleh dipangkas)
+8. Peta perubahan dari Modul 06 dan jembatan ke Coroutines/Flow (pendukung penutup)
 
-Arah dependency: `UI → ViewModel → Repository → Data Source`. User event bergerak ke dalam, UI state bergerak ke luar.
+Total 39 state (38 kali Next), 1206 frame, estimasi ±15 menit. Scene 1, 7, dan 8 dapat dipangkas tanpa mengubah scene lain (nomor state dihitung dari `stops.ts`).
 
-## 4. Spesifikasi
+## 6. Spesifikasi
+Sama dengan Modul 06: Vite + React + TS + `@remotion/player`, 1920×1080, 30 fps, navigasi berbasis Stop, web statis offline.
 
-| Item               | Nilai                                                            |
-| ------------------ | ---------------------------------------------------------------- |
-| Stack              | Vite + React + TypeScript + `@remotion/player`                   |
-| Output             | Web statis interaktif, jalan offline (bukan MP4)                 |
-| Resolusi komposisi | 1920×1080 (16:9), FPS 30                                         |
-| Navigasi           | Berbasis Stop: Next/Prev dari keyboard atau klik                 |
-| Skala tampilan     | Player di-scale mengikuti viewport; sisa ruang diisi latar polos |
+## 7. Non-goals
+- Tidak ada panggilan jaringan nyata dan tidak ada implementasi Retrofit yang berjalan. Semua JSON adalah konstanta.
+- Tidak membahas POST/PUT/DELETE, Firebase, Coroutines, Flow, atau Room (Coroutines/Flow hanya label teaser di akhir).
+- Tidak ada tombol di layar, form, scroll, speaker notes, atau teks narasi di layar.
+- Tidak menampilkan field sensitif palsu dari DummyJSON (password, ssn, nomor kartu, iban, wallet).
 
-## 5. Alur
-
-6 scene, 26 state (25 kali Next), estimasi bawaan ±13 menit presentasi:
-
-1. Spageti Code (masalah: semua perubahan jatuh ke satu fungsi; pembuka memuat header branding perkuliahan: logo MGM, logo Curriculum, title "PAPB - ARSITEKTUR")
-2. Filosofi Restoran (analogi 4 peran)
-3. Tebas Kode (pemotongan) dan 4. Empat Lapis (istilah + isi) — satu kanvas
-5. Aliran Eksekusi (event masuk, state keluar)
-6. Uji Perubahan (bukti pemisahan tanggung jawab: 4 permintaan perubahan hanya menyentuh 1 lapisan terisolasi termasuk REST API `mgm.org/list`, integrasi 4 lapisan terpadu yang saling bersambung, serta kesimpulan penutup dengan seluruh 4 layer terupdate dan badge branding)
-
-Seluruh scene dilengkapi **Watermark Persistent** di pojok kanan atas memuat logo Curriculum mini + logo MGM mini + teks kapital "SHAM".
-
-## 6. Glosarium
-
-- **Scene**: satu bagian presentasi.
-- **Stop / State**: kondisi layar yang stabil; Next menggerakkan ke state berikutnya.
-- **Layer**: salah satu dari 4 lapisan arsitektur.
-
-## 7. Non-goals (dilarang)
-
-- Backend, database nyata, Room, SQLite, Firebase, REST API fungsional. Teaser Room/REST di Scene 6 murni label visual arsitektur masa depan tanpa koneksi nyata. Semua data adalah string/konstanta.
-- Render atau ekspor video (MP4, GIF, server-side render).
-- Tombol di layar, form, scroll, menu, speaker notes, tampilan narasi.
-
-## 8. Risiko yang diketahui
-
-- Lisensi Remotion untuk institusi: cek syarat di remotion.pro sebelum dipakai resmi di kampus.
-- Kode pada mode 4 kolom berukuran kecil dan bersifat dekoratif; informasi dibawa oleh label (lihat 04).
+## 8. Koreksi konsep yang dijaga di deck ini
+- `total`, `skip`, `limit` adalah milik `UserResponse` (pembungkus), BUKAN `UserDto`.
+- `onResponse` TIDAK selalu berarti sukses: status 404/500 juga masuk `onResponse`; sukses hanya jika `response.isSuccessful && body != null`.
+- Kegagalan datang dari tiga tempat (`onFailure`, `isSuccessful = false`, body null) dan semuanya menjadi `Result.failure`.
+- Gson menghasilkan DTO, bukan `Student`; pemetaan ke `Student` dilakukan Repository.
+- Biru dan hijau sudah menjadi warna lapisan (UI dan Repository), jadi tidak dipakai sebagai warna partikel event/response.
 
 ## 9. Kriteria sukses
-
-Dosen dapat menjalankan seluruh 6 scene hanya dengan keyboard/klik, di proyektor 1080p, tanpa internet, tanpa error, dan maju/mundur menghasilkan tampilan yang sama persis untuk state yang sama.
+Dosen menjalankan seluruh deck hanya dengan keyboard/klik di proyektor 1080p tanpa internet; maju-mundur menghasilkan tampilan identik untuk state yang sama; semua istilah dan nama kelas sesuai Modul 07.

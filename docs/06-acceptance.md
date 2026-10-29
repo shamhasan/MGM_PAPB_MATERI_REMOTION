@@ -1,75 +1,73 @@
-# 06 — Acceptance Criteria
+# 06 — Acceptance Criteria (Modul 07)
 
-Agen wajib memeriksa seluruh butir sebelum menyatakan selesai. Centang hanya yang benar-benar diuji.
+Centang hanya butir yang benar-benar diuji.
 
 ## A. Build dan kode
-
-- [ ] `npm run build:web` sukses tanpa error.
-- [ ] `npx tsc --noEmit` bersih.
-- [ ] Tidak ada `any`, `setTimeout`, CSS `transition`/`@keyframes`, atau `player.play()` di `src/`.
-- [ ] Tidak ada URL eksternal di `src/` maupun `index.html` (font, CDN, gambar).
-- [ ] Hasil `build:web` (disajikan statis) berjalan dengan jaringan dimatikan dan font tetap tampil (Inter, JetBrains Mono).
+- [x] `npm run build:web` sukses; `npx tsc --noEmit` bersih.
+- [x] Tidak ada `any`, `setTimeout`, `player.play()`, atau CSS animation/transition (selain `.spinner`).
+- [x] Tidak ada URL eksternal atau `fetch` di `src/` dan `index.html`; hasil build jalan dengan jaringan dimatikan dan font tetap tampil.
+- [x] Tidak ada field sensitif DummyJSON di `src/assets/code.ts` (password, ssn, ein, cardNumber, iban, wallet, macAddress, ip).
 
 ## B. Navigasi
+- [x] `SETTLED` berisi tepat 39 state; durasi komposisi 1207 frame (komposisi `Deck` di Studio juga 1207).
+- [x] Next (`→`, `PageDown`, `Space`, klik) maju satu state; Prev (`←`, `PageUp`) mundur satu state; di ujung tidak error.
+- [x] Next saat animasi berjalan hanya menyelesaikan animasi itu.
+- [x] Maju N lalu mundur N menghasilkan tampilan identik (uji pada state 6, 11, 16, 22, 27, 32, 38). Spinner dikecualikan.
+- [x] Satu tekanan = satu panggilan `next()` (tidak ada listener ganda); `e.repeat` diabaikan.
+- [x] Animasi benar-benar terlihat berjalan di `npm run present` (bukan hanya di Studio): misalnya state 4 menampilkan JSON terketik sebagian pada ±0,6 detik setelah Next.
 
-- [ ] `SETTLED` berisi tepat 26 state; durasi komposisi 769 frame (komposisi `Deck` di Remotion Studio juga 769 frame).
-- [ ] Next (`→`, `PageDown`, `Space`, klik) maju satu state; Prev (`←`, `PageUp`) mundur satu state.
-- [ ] Next pada state terakhir dan Prev pada state pertama tidak melakukan apa pun dan tidak error.
-- [ ] Menekan Next saat animasi berjalan hanya menyelesaikan animasi itu (tidak melompat dua state).
-- [ ] Maju N kali lalu mundur N kali menghasilkan tampilan yang identik dengan state asal (uji pada state 3, 9, 12, 16, 19, 22, 24, 25).
-- [ ] Klik, Space, dan double-click tidak memicu perilaku bawaan Player (play/pause/fullscreen).
-- [ ] Animasi benar-benar terlihat berjalan: pada Scene 1 Stop 1, sekitar 1 dan 2 detik setelah Next, layar menampilkan SEBAGIAN kode (bukan kosong, bukan penuh). Uji di `npm run present`, bukan hanya di Studio.
-- [ ] Satu tekanan Next tepat memicu satu animasi (log di `next()` hanya tercetak sekali per tekanan).
-
-## C. Isi (cocokkan dengan `02-storyboard.md`)
-
-| State | Harus terlihat                                                                                                                 |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------ |
-| 0     | Jendela editor mock kosong; memuat header branding perkuliahan (logo MGM, logo Curriculum, title "PAPB - ARSITEKTUR"); watermark persistent "SHAM" di pojok kanan atas |
-| 1     | Seluruh fungsi `DetailScreen` terketik penuh, 19 baris, tanpa komentar marker                                                  |
-| 2     | Hanya baris 3–9 yang terang; baris lain redup (0.3); callout "Ganti sumber data → ubah baris 3–9" di kanan, tidak menimpa kode |
-| 3     | Hanya baris 16–18 yang terang; callout berganti "Ubah tampilan → ubah baris 16–18"                                             |
-| 4     | Semua baris redup + kartu merah "Satu fungsi, banyak alasan untuk berubah" dengan 3 baris teks; callout hilang                 |
-| 5     | Latar terang, judul "Prinsip Restoran"                                                                                         |
-| 6–9   | Kartu Pelayan (biru), Pencatat Pesanan (oranye), Bagian Pengadaan (hijau), Gudang (navy) muncul berurutan, kiri→kanan          |
-| 10    | Kode spageti utuh, tidak redup, latar gelap                                                                                    |
-| 11    | Tiga garis laser; 4 bagian bergaris warna lapisan tanpa nama                                                                   |
-| 12    | 4 kartu sejajar kiri→kanan: UI, ViewModel, Repository, Data Source; latar terang; tanpa label                                  |
-| 13–16 | Label muncul berurutan: Data Source, Repository, ViewModel, Composable UI; label sebelumnya tetap tampil                       |
-| 17    | 4 kotak seragam + konektor + teks arah dependency                                                                              |
-| 18    | Panah event ke kanan + label "User Event / Request" + caption kode                                                             |
-| 19    | Panah state ke kiri (ungu) + label "Model Data → UI State"                                                                     |
-| 20    | Banner Permintaan 1; hanya Data Source menyala (diff `−`/`+` endpoint REST API `mgm.org/list`); UI, VM, Repo redup bertanda "TETAP" |
-| 21    | Banner Permintaan 2; hanya Repository menyala (diff `−`/`+` tolak ID ≤ 0 dan ambil dari Data Source); UI, VM, DS redup bertanda "TETAP" |
-| 22    | Banner Permintaan 3; hanya ViewModel menyala (diff `−`/`+` pesan error sebutkan ID); UI, Repo, DS redup bertanda "TETAP" |
-| 23    | Banner Permintaan 4; hanya UI menyala (diff `+` tampilkan angkatan); VM, Repo, DS redup bertanda "TETAP" |
-| 24    | Banner Hasil Akhir; keempat kartu menyala bersamaan bertanda "TERPADU" dengan kode bersih tanpa tanda diff yang terhubung (Data Source -> Repository -> ViewModel -> UI) |
-| 25    | Seluruh 4 layer menampilkan kode terupdate penuh (UI, ViewModel, Repository mengambil dari Data Source `mgm.org/list`) + modal kesimpulan arsitektur ("Mengapa Kita Memisahkan Lapisan?") dan badge branding |
-
-Tambahan untuk Scene 1:
-
-- [ ] Transisi state 2 → 3 berupa cross-fade (baris 3–9 meredup sementara 16–18 menyala), bukan lompat.
-- [ ] Callout tidak menimpa baris kode terpanjang pada 1920×1080.
-- [ ] Sorotan berpindah mundur dengan benar saat Prev (state 3 → 2 → 1).
-
-Tambahan untuk Scene 6:
-
-- [ ] Pada tiap stop 20–23, tepat SATU kartu berstatus "DIUBAH" dengan diff, 3 kartu lainnya berstatus "TETAP" dan redup.
-- [ ] Format diff jelas membedakan baris hijau (`+`) dan merah (`−`).
-- [ ] Di state 24, keempat kartu menyala bersamaan berstatus "TERPADU" dengan kode bersih yang saling bersambung (Data Source -> Repo -> VM -> UI).
-- [ ] Di state 25, seluruh 4 layer (bukan cuma Data Source) menampilkan kode yang sudah terupdate penuh, dengan layer lain tetap mengambil referensi dari Data Source sebagai referensi perubahan di code asset, berdampingan dengan modal kesimpulan arsitektur ("Mengapa Kita Memisahkan Lapisan?").
+## C. Isi per state (cocokkan `02-storyboard.md`)
+| State | Harus terlihat |
+|---|---|
+| 0 | Judul, 4 kotak (Data Source "in-memory list"), slot 5 kosong |
+| 1 | Remote Data Source + kotak REST API (putus-putus) + "batas aplikasi" + teks "Apa yang berubah?" |
+| 2 | Rel 5 stasiun, ① aktif, teks pembuka |
+| 3 | Token ke ③, paket `GET /users?limit=10` |
+| 4 | Blok JSON 16 baris + chip `200 OK` + teks status code |
+| 5 | JSON masuk Cog; objek `UserResponse(...)` di kanan |
+| 6 | Token ke ⑤; ponsel dengan kartu Emily Johnson |
+| 7 | Judul Scene 3, 5 kotak tanpa caption |
+| 8 | Panah event gelap + caption event per kotak |
+| 9 | Panah response ungu + caption wujud data per kotak |
+| 10 | Busur UI → Remote DS dengan tanda silang merah + teks larangan |
+| 11 | Busur kedua ViewModel → Remote DS + teks; busur pertama redup |
+| 12 | JSON ringkas 14 baris + caption |
+| 13 | `UserResponse` tampil; `users` dan `total/skip/limit` menyala |
+| 14 | `UserDto` tampil; hanya 5 field menyala, sisanya "tidak dipakai" |
+| 15 | Gerbang `toStudent()`; nama tergabung; kartu `Student`; kode mapper |
+| 16 | Tag Repository + tiga poin |
+| 17 | Dua lajur + judul |
+| 18 | Lajur utama tersumbat + kode `execute()` berlabel SALAH |
+| 19 | Cabang ke lajur jaringan; chip `isLoading = true` + spinner; kode `ASYNC_CODE` |
+| 20 | Dua pintu `onResponse` dan `onFailure`; kode `enqueue` dengan baris kunci 2 dan 10 |
+| 21 | Gerbang `isSuccessful && body != null`; jalur `--ok` dan `--err`; baris kunci 4, 5, 7 |
+| 22 | Hasil kembali ke lajur utama; kode `VM_CODE` dengan baris kunci 3 dan 5 |
+| 23 | Ponsel kosong + panel state default + judul |
+| 24 | Spinner; `isLoading = true`; cabang 1 menyala |
+| 25 | Error + tombol Coba Lagi; `errorMessage = "Unable to resolve host…"`; cabang 2 |
+| 26 | Tombol ditekan lalu loading; `copy(isLoading = true, …)`; callout `onRetry`; cabang 1 |
+| 27 | Daftar baris "1 - Emily Johnson" dst.; `students = [10 item]`; cabang 3 |
+| 28 | Peta pintu kosong + judul + teks "ujungnya Result.failure" |
+| 29–32 | Chip gejala berturut-turut ke target yang benar (onFailure, onResponse+gerbang gagal, onFailure + sorot Remote DS, onFailure) dengan kartu perbaikan sesuai `03` |
+| 33 | Baris kotak + banner "Apa yang berubah dari Modul 06?" |
+| 34–37 | Satu kotak menyala per state (Remote DS, Repository, ViewModel, UI) dengan lencana dan diff `DIFFS[0..3]` |
+| 38 | Ringkasan dua kolom Berubah/Tetap + "Berikutnya: callback → Kotlin Coroutines & Flow" (label saja) |
 
 ## D. Visual
-
-- [ ] Urutan lapisan kiri→kanan selalu UI → ViewModel → Repository → Data Source.
-- [ ] Warna lapisan sesuai token; teks di atas warna lapisan memakai `--on-*`.
-- [ ] Teks utama ≥ 42px; kode editor 30px; tidak ada teks (selain kode mode thumbnail) di bawah ukuran minimum.
-- [ ] Tidak ada teks atau elemen keluar dari zona aman 80px, atau terpotong, pada 1920×1080.
-- [ ] Tampilan benar pada viewport 1920×1080, 1280×720, dan rasio lebar (letterbox tidak menampilkan putih terang di scene gelap).
-- [ ] Teks "Narasi" tidak muncul di layar.
+- [x] Urutan lapisan kiri→kanan: UI, ViewModel, Repository, Remote Data Source, REST API.
+- [x] Warna lapisan sesuai token; teks di atas warna lapisan memakai token `--on-*`.
+- [x] Panah event dan response BUKAN biru/hijau.
+- [x] Teks utama ≥ 42px (kecuali pengecualian di `04-delta`); tidak ada teks atau elemen keluar zona aman 80px atau terpotong pada 1920×1080.
+- [x] Kode di panel, kolom Scene 4, dan JSON tidak terpotong dan terbaca.
+- [x] Tampilan benar pada 1920×1080 dan 1280×720; teks "Narasi" tidak muncul.
 
 ## E. Kepatuhan scope
+- [x] Tidak ada tombol, form, scroll, atau elemen interaktif di layar.
+- [x] Tidak ada kode Retrofit yang dijalankan, tidak ada Coroutines/Flow/Room selain label teaser.
 
-- [ ] Tidak ada tombol, form, scroll, menu, atau elemen interaktif di layar.
-- [ ] Tidak ada backend, database, atau fetch jaringan.
-- [ ] Tidak ada fitur di luar dokumen 01–05.
+## F. Akurasi materi (periksa manual terhadap modul)
+- [x] `total`, `skip`, `limit` ditampilkan sebagai milik `UserResponse`, bukan `UserDto`.
+- [x] Scene 5 menyatakan bahwa `onResponse` bisa berisi kegagalan (status non-2xx) dan bahwa semua kegagalan menjadi `Result.failure`.
+- [x] Pemetaan DTO → Student ditunjukkan terjadi di Repository.
+- [x] `Student` memakai `email` dan `university` (bukan `program`/`year`).
+- [x] Urutan cabang `when` (isLoading, errorMessage, else) sama dengan modul.

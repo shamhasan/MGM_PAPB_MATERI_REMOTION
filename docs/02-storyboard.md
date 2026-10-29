@@ -1,152 +1,205 @@
-# 02 — Storyboard
+# 02 — Storyboard Modul 07
 
 ## Aturan umum
+- `Stop 0` = kondisi awal scene (transisi masuk `sceneIn`, kecuali Scene 1). `Stop N` = kondisi setelah N kali Next di dalam scene.
+- **Frames** = durasi transisi (30 fps) MENUJU stop itu. Angka sebenarnya ada di `src/deck/stops.ts`; tabel ini harus identik.
+- **Narasi** adalah naskah lisan dosen, TIDAK ditampilkan di layar.
+- Semua scene berlatar terang (`--bg-light`); panel kode berlatar gelap (`--editor-bg`).
+- Grid 5 slot: lebar slot 320px, jarak 40px (5×320 + 4×40 = 1760, zona aman 80px). Urutan lapisan kiri→kanan: UI, ViewModel, Repository, Remote Data Source, REST API.
+- Nama efek didefinisikan di `05-animation-delta.md` dan `docs-modul06/05-animation-spec.md`.
+- Spesifikasi data (JSON, kode, teks panel) ada di `03-code-assets.md`.
 
-- `Stop 0` = kondisi awal scene. `Stop N` = kondisi setelah N kali Next di dalam scene.
-- Kolom **Frames** = durasi transisi (30 fps) MENUJU stop tersebut. Nilai sebenarnya ada di `src/deck/stops.ts`; tabel ini harus identik dengannya.
-- **Stop 0 scene yang visualnya identik dengan akhir scene sebelumnya tidak menjadi klik tersendiri** (Frames = 0). Hanya berlaku untuk Scene 4 Stop 0.
-- Baris **Narasi** adalah naskah lisan dosen. JANGAN ditampilkan di layar.
-- Nama efek (`typeCode`, `dim`, dst.) didefinisikan di `05-animation-spec.md`.
+## Peta state global (39 state, 38 kali Next)
+| # | Scene.Stop | Frames | Frame akhir (settled) |
+|---|---|---|---|
+| 0 | 1.0 | 0 | 0 |
+| 1 | 1.1 | 30 | 30 |
+| 2 | 2.0 | 18 | 48 |
+| 3 | 2.1 | 36 | 84 |
+| 4 | 2.2 | 36 | 120 |
+| 5 | 2.3 | 36 | 156 |
+| 6 | 2.4 | 36 | 192 |
+| 7 | 3.0 | 24 | 216 |
+| 8 | 3.1 | 60 | 276 |
+| 9 | 3.2 | 60 | 336 |
+| 10 | 3.3 | 30 | 366 |
+| 11 | 3.4 | 30 | 396 |
+| 12 | 4.0 | 24 | 420 |
+| 13 | 4.1 | 30 | 450 |
+| 14 | 4.2 | 30 | 480 |
+| 15 | 4.3 | 36 | 516 |
+| 16 | 4.4 | 30 | 546 |
+| 17 | 5.0 | 24 | 570 |
+| 18 | 5.1 | 36 | 606 |
+| 19 | 5.2 | 36 | 642 |
+| 20 | 5.3 | 36 | 678 |
+| 21 | 5.4 | 36 | 714 |
+| 22 | 5.5 | 36 | 750 |
+| 23 | 6.0 | 24 | 774 |
+| 24 | 6.1 | 30 | 804 |
+| 25 | 6.2 | 30 | 834 |
+| 26 | 6.3 | 24 | 858 |
+| 27 | 6.4 | 30 | 888 |
+| 28 | 7.0 | 24 | 912 |
+| 29 | 7.1 | 30 | 942 |
+| 30 | 7.2 | 30 | 972 |
+| 31 | 7.3 | 30 | 1002 |
+| 32 | 7.4 | 30 | 1032 |
+| 33 | 8.0 | 24 | 1056 |
+| 34 | 8.1 | 30 | 1086 |
+| 35 | 8.2 | 30 | 1116 |
+| 36 | 8.3 | 30 | 1146 |
+| 37 | 8.4 | 30 | 1176 |
+| 38 | 8.5 | 30 | 1206 |
 
-## Peta state global (26 state, 25 kali Next)
-
-| #   | Scene.Stop | Frames | #   | Scene.Stop | Frames |
-| --- | ---------- | ------ | --- | ---------- | ------ |
-| 0   | 1.0        | 0      | 13  | 4.1        | 24     |
-| 1   | 1.1        | 90     | 14  | 4.2        | 24     |
-| 2   | 1.2        | 24     | 15  | 4.3        | 24     |
-| 3   | 1.3        | 24     | 16  | 4.4        | 24     |
-| 4   | 1.4        | 24     | 17  | 5.0        | 24     |
-| 5   | 2.0        | 18     | 18  | 5.1        | 60     |
-| 6   | 2.1        | 24     | 19  | 5.2        | 60     |
-| 7   | 2.2        | 24     | 20  | 6.0        | 24     |
-| 8   | 2.3        | 24     | 21  | 6.1        | 24     |
-| 9   | 2.4        | 24     | 22  | 6.2        | 24     |
-| 10  | 3.0        | 18     | 23  | 6.3        | 24     |
-| 11  | 3.1        | 48     | 24  | 6.4        | 24     |
-| 12  | 3.2        | 36     | 25  | 6.5        | 30     |
-| (≡12)| 4.0       | 0      |     |            |        |
-
-Total frame = 768 (durasi komposisi = 769).
+Total frame = 1206 (durasi komposisi = 1207). Tidak ada stop ber-frame 0 selain state pertama.
 
 ---
 
-## Scene 1 — Masalah "Spageti Code"
-
-**Tujuan:** menunjukkan bahwa dua pekerjaan berbeda (data dan tampilan) menumpuk di satu fungsi, sehingga satu perubahan menyentuh bagian yang tidak terkait. **Latar:** gelap (`--bg-dark`).
-
-Nomor baris di bawah merujuk ke baris tampil di `03-code-assets.md` (setelah marker dihapus): baris **3–9** = data dan pencarian, baris **16–18** = tampilan.
-
-| Stop | Aksi                                           | Yang tampil                                                                                                                                                                                                                                              | Frames |
-| ---- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 0    | n/a                                            | Jendela editor mock (title bar + tab `DetailScreen.kt` + nomor baris), kosong                                                                                                                                                                            | 0      |
-| 1    | `typeCode`                                     | Seluruh fungsi `DetailScreen` terketik (tanpa komentar marker)                                                                                                                                                                                           | 90     |
-| 2    | `dim` + `highlightLines` + `callout`           | Semua baris meredup (0.3) KECUALI baris 3–9 yang menyala (latar `#FFFFFF20`). Callout di kanan: **"Ganti sumber data → ubah baris 3–9"**                                                                                                                 | 24     |
-| 3    | `highlightLines` bergeser + `callout` berganti | Sorotan pindah (cross-fade) ke baris 16–18; baris 3–9 meredup. Callout berganti: **"Ubah tampilan → ubah baris 16–18"**                                                                                                                                  | 24     |
-| 4    | `dim` + kartu peringatan                       | Semua baris meredup (0.3), callout hilang. Kartu border merah di tengah: judul **"Satu fungsi, banyak alasan untuk berubah"**; tiga baris: "Dua pekerjaan berbeda, satu tempat" · "Ubah satu, yang lain ikut berisiko" · "Sulit dites dengan data palsu" | 24     |
-
-Aturan callout: lebar maksimum 560px, rata kanan di dalam jendela editor (jarak 40px dari tepi), sejajar vertikal dengan tengah rentang baris yang disorot, gaya kartu peringatan (lihat 04 bagian 8). Baris kode terpanjang berakhir sekitar 1010px dari tepi kiri editor, jadi callout tidak boleh menimpa kode.
-
-**Narasi (tidak ditampilkan):**
-
-- Sebelum klik: "Kita mulai dari cara yang paling sering dipakai saat baru belajar: semuanya ditulis di satu tempat."
-- Stop 1: "Ini satu fungsi `DetailScreen`: data mahasiswa, cara mencarinya, state, dan tampilannya. Semuanya jalan, dan untuk aplikasi sekecil ini itu wajar."
-- Stop 2: "Mau ganti list ini ke database? Kita bongkar baris 3 sampai 9."
-- Stop 3: "Mau ubah tampilan? Kita buka baris 16 sampai 18, di fungsi yang sama."
-- Stop 4: "Dua pekerjaan berbeda tinggal di satu tempat. Ubah satu, yang lain ikut berisiko. Bayangkan ini 500 baris."
-
-## Scene 2 — Filosofi Restoran
-
-**Tujuan:** analogi 4 peran → 4 lapis. **Latar:** terang (`--bg-light`). Layout: judul di atas, 4 kartu sejajar (410px, gap 40px), urutan kiri→kanan sama dengan Scene 5.
-
-| Stop | Aksi      | Yang tampil                                                                                                    | Frames |
-| ---- | --------- | -------------------------------------------------------------------------------------------------------------- | ------ |
-| 0    | `sceneIn` | Judul "Prinsip Restoran" + subjudul "Satu peran, satu tanggung jawab"                                          | 18     |
-| 1    | `popIn`   | Kartu **Pelayan** (biru, ikon `ConciergeBell`). "Tugas: Menyajikan hidangan" · chip "(UI)"                     | 24     |
-| 2    | `popIn`   | Kartu **Pencatat Pesanan** (oranye, `ClipboardList`). "Tugas: Menyimpan status meja & orderan" · "(ViewModel)" | 24     |
-| 3    | `popIn`   | Kartu **Bagian Pengadaan** (hijau, `Truck`). "Tugas: Mengatur dari mana bahan diambil" · "(Repository)"        | 24     |
-| 4    | `popIn`   | Kartu **Gudang** (navy, `Warehouse`). "Tugas: Tempat fisik bahan baku" · "(Data Source)"                       | 24     |
-
-**Narasi:** "Setiap peran punya satu tanggung jawab pasti. Pelayan tidak ikut mengurus gudang."
-
-## Scene 3 — Tebas Kode
-
-**Tujuan:** memotong kode satu file menjadi 4 pecahan logis. **Latar:** gelap, lalu menjadi terang pada Stop 2.
-
-| Stop | Aksi         | Yang tampil                                                                                                                           | Frames     |
-| ---- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------- | ---------- | --------- | ------------------------------------------------------------------------------- | --- |
-| 0    | `sceneIn`    | Kode spageti utuh (kondisi akhir Scene 1 Stop 1, tidak meredup, tanpa kartu peringatan) di tengah layar                               | 18         |
-| 1    | `laserCut`   | Tiga garis neon merah memotong berurutan di batas `datasource                                                                         | repository | viewmodel | ui`. Tiap bagian mendapat garis warna lapisan di tepi kiri (TANPA nama lapisan) | 48  |
-| 2    | `splitBlock` | Empat pecahan memisah dan menjadi 4 kartu sejajar, urutan kiri→kanan: UI, ViewModel, Repository, Data Source. Latar beralih ke terang | 36         |
-
-**Narasi:** "Kita pisahkan kodenya. Kenapa? Supaya saat sumber data diganti, tampilan tidak perlu disentuh sama sekali."
-
-## Scene 4 — Empat Lapis Arsitektur Android
-
-**Tujuan:** mengunci istilah dan isi tiap lapisan. **Satu kanvas dengan Scene 3** (komponen yang sama, `SceneSplit.tsx`).
-
-Stop 0 ≡ akhir Scene 3 Stop 2 (4 kartu tanpa label; tidak ada klik tersendiri).
-
-| Stop | Aksi                           | Yang tampil (label muncul di bawah kartu dan tetap tampil)                            | Frames |
-| ---- | ------------------------------ | ------------------------------------------------------------------------------------- | ------ |
-| 1    | `focusGrow` kartu paling kanan | Chip navy **Data Source** · "Sumber data (in-memory list)" · `StudentLocalDataSource` | 24     |
-| 2    | `focusGrow` kartu ke-3         | Chip hijau **Repository** · "Satu pintu akses data" · `StudentRepository`             | 24     |
-| 3    | `focusGrow` kartu ke-2         | Chip oranye **ViewModel** · "State holder tingkat layar" · `DetailViewModel`          | 24     |
-| 4    | `focusGrow` kartu paling kiri  | Chip biru **Composable UI** · "Menampilkan state & mengirim event" · `DetailScreen`   | 24     |
-
-Setiap stop: kartu yang sebelumnya fokus kembali ke ukuran normal tetapi labelnya tetap tampil. Urutan penjelasan sengaja dari bawah ke atas (urutan membangun di modul), berbeda dari Scene 2 yang atas ke bawah (sudut pandang pelanggan).
-
-**Narasi:** "Dari paling bawah: Data Source menyimpan datanya, Repository menjadi satu pintu aksesnya, ViewModel memegang state layar, dan Composable hanya menampilkan."
-
-## Scene 5 — Aliran Eksekusi
-
-**Tujuan:** arah dependency dan aliran data. **Latar:** terang.
-
-| Stop | Aksi                | Yang tampil                                                                                                                                                                                                                                                                                                      | Frames |
-| ---- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 0    | `morphToBoxes`      | Kartu mengecil/menyatu menjadi 4 kotak seragam (410×200) berisi nama lapisan saja. Judul "Aliran Eksekusi". Konektor abu-abu tipis antar kotak. Teks bawah: "Arah dependency: UI → ViewModel → Repository → Data Source"                                                                                         | 24     |
-| 1    | `flowArrow` (event) | Panah gelap di atas kotak, dari UI ke Data Source. Label di atas panah: **"User Event / Request"**. Saat panah melewati tiap kotak, kotak berdenyut (`pulse`) dan caption kode muncul di bawahnya: UI `onClick`, ViewModel `loadStudent(id)`, Repository `getStudentById(id)`, Data Source `students.find { … }` | 60     |
-| 2    | `flowArrow` (state) | Panah ungu di bawah kotak, dari Data Source ke UI (arah mundur). Label: **"Model Data → UI State"**. Kotak berdenyut urutan terbalik; caption berganti (crossfade): Data Source `Student`, Repository `Student`, ViewModel `DetailUiState`, UI "render ke layar"                                                 | 60     |
-
-**Narasi:** "Aksi user bergerak ke dalam, data yang sudah matang bergerak ke luar untuk dirender. Sistematis dan bersih."
-
-## Scene 6 — Uji Perubahan (Bukti Pemisahan & Kode Terpadu)
-
-**Tujuan:** membuktikan secara visual bahwa arsitektur 4 lapis berhasil mengisolasi perubahan—setiap permintaan hanya menyentuh satu lapisan terisolasi, sementara 3 lapisan lainnya sama sekali tidak disentuh (membalas langsung masalah di Scene 1). Ditutup dengan tampilan 4 kartu terpadu yang saling terhubung bersih dari Data Source s.d. UI serta rangkuman arsitektur. **Latar:** terang (`--bg-light`).
-
-**Layout:**
-- Judul di atas: **"Uji Perubahan: Bukti Pemisahan"**.
-- Banner atas dinamis: teks permintaan perubahan yang sedang diuji.
-- 4 kartu lapisan berjajar 410px, gap 40px (urutan kiri→kanan: UI, ViewModel, Repository, Data Source).
-- Kartu yang disasar: menyala penuh (scale 1.02, border warna lapisan, badge **"⚡ DIUBAH"**, dan cuplikan diff kode).
-- Tiga kartu lainnya: meredup (opacity 0.35, badge **"✓ TETAP"**, tanpa perubahan kode).
-- Pada Stop 4 (State 24): Keempat kartu menyala bersamaan (opacity 1.0, scale 1.0, badge **"✓ TERPADU"**), menampilkan kode terbaru yang saling mereferensikan secara utuh.
-- Pada Stop 5 (State 25): Menampilkan **seluruh 4 layer sudah terupdate penuh** (tidak hanya Data Source; Repository, ViewModel, dan UI terupdate dan tetap mengambil referensi dari Data Source sebagai referensi perubahan di code asset) yang tetap terlihat jelas di kartu masing-masing, sementara modal kartu rangkuman penutup kontras arsitektur muncul di tengah.
+## Scene 1 — Rekap: dari In-Memory ke REST (pendukung)
+**Tujuan:** menyambungkan Modul 06 ke Modul 07 dan menanam pertanyaan: apa yang berubah, apa yang tetap?
 
 | Stop | Aksi | Yang tampil | Frames |
-| ---- | ---- | ----------- | ------ |
-| 0 | `testChange1` | Banner: **"Permintaan 1: Ambil data dari server via REST API (mgm.org/list)"**. Kartu **Data Source** menyala: diff `- listOf(...)` diganti `+ client.get("mgm.org/list")`. Kartu UI, ViewModel, Repository redup dengan badge "✓ TETAP". | 24 |
-| 1 | `testChange2` | Banner: **"Permintaan 2: Tolak ID yang tidak valid (≤ 0)"**. Kartu **Repository** menyala: diff `- dataSource.getStudentById(id)` diganti `+ if (id <= 0) null else dataSource.getStudents().find { it.id == id }`. Kartu UI, ViewModel, Data Source redup "✓ TETAP". | 24 |
-| 2 | `testChange3` | Banner: **"Permintaan 3: Pesan error sebutkan ID-nya"**. Kartu **ViewModel** menyala: diff `- "Mahasiswa tidak ditemukan"` diganti `+ "Mahasiswa #$studentId tidak ditemukan"`. Kartu UI, Repository, Data Source redup "✓ TETAP". | 24 |
-| 3 | `testChange4` | Banner: **"Permintaan 4: Tampilkan angkatan di layar"**. Kartu **UI** menyala: diff `+ Text("Angkatan: ${student?.year ?: \"-\"}")`. Kartu ViewModel, Repository, Data Source redup "✓ TETAP". | 24 |
-| 4 | `unifiedCode` | Banner: **"Hasil Akhir: 4 Lapisan Bekerja Sama secara Harmonis"**. **Keempat kartu menyala bersamaan** (`✓ TERPADU`) tanpa tanda diff. Menampilkan kode final bersih yang saling bersambung: Data Source (`mgm.org/list`) → Repository (mengambil dari Data Source & memfilter) → ViewModel (mengambil dari Repository & mengelola state ber-ID) → UI (merender nama & angkatan). | 24 |
-| 5 | `summaryModal` | **Kesimpulan Arsitektur**: **Seluruh 4 layer ditampilkan dalam kondisi sudah terupdate penuh** (ga cuma Data Source, layer lain tetap mengambil dari Data Source sebagai referensi perubahan di code asset). Modal kartu penutup muncul di tengah (latar `#2B1B1B`, border 4px `--laser`): judul **"Mengapa Kita Memisahkan Lapisan?"**, kontras: *"Di versi Spageti (Scene 1): 4 permintaan mengacak-acak 1 fungsi yang sama"* vs *"Di arsitektur berlapis: Tiap permintaan hanya mengubah 1 lapisan tanpa efek samping"*. Ditambah teaser Modul 07+ (Room DB / Retrofit). | 30 |
+|---|---|---|---|
+| 0 | n/a | Judul "Modul 07: Data dari Internet". Empat kotak slot 1–4: UI (biru), ViewModel (oranye), Repository (hijau), Data Source (navy, sublabel "in-memory list"). Slot 5 kosong. Teks bawah: "Modul 06: semua data berasal dari dalam aplikasi" | 0 |
+| 1 | `boxSwap` + `slideIn` | Kotak Data Source berganti menjadi **Remote Data Source** (sublabel `StudentRemoteDataSource`). Kotak ke-5 **REST API** (slate, sublabel "DummyJSON") masuk dari kanan. Garis putus-putus vertikal antara slot 4 dan 5 berlabel "batas aplikasi". Teks bawah: "Apa yang berubah? Apa yang tetap?" | 30 |
 
-**Narasi (tidak ditampilkan):**
-- Stop 0: "Sekarang mari kita buktikan. Mau ganti in-memory list ke server REST API di mgm.org/list? Cukup ubah implementasi di Data Source. UI, ViewModel, dan Repository tidak perlu tahu dan tidak perlu diedit."
-- Stop 1: "Ada aturan bisnis baru: tolak ID kurang dari sama dengan nol? Cukup ubah Repository sebagai pintu gerbang data. Tampilan dan data source tetap aman."
-- Stop 2: "Ingin pesan error lebih informatif menyebutkan ID-nya? Cukup ubah state di ViewModel. UI hanya merender apa yang diberikan ViewModel."
-- Stop 3: "Desainer ingin menampilkan tahun angkatan? Karena datanya sudah ada di model, kita cukup tambah satu Text di UI Composable tanpa mengutak-atik logika bisnis."
-- Stop 4: "Lihat hasil akhirnya: dari Data Source memanggil mgm.org/list, Repository memvalidasi, ViewModel mengelola state, hingga Composable UI menampilkan ke layar. Keempatnya saling terhubung bersih tanpa saling mengacak-acak file lain!"
-- Stop 5: "Bahkan ketika di modul berikutnya kita mengganti sumber data ke Room Database atau Retrofit, seluruh arsitektur ini tetap kokoh. Inilah kekuatan arsitektur Android!"
+**Narasi:**
+- Stop 0: "Di Modul 06 semua data hidup di dalam aplikasi, dan kita sudah memisahkan empat layer."
+- Stop 1: "Hari ini sumber datanya pindah ke internet. Di Modul 06 kita berjanji: saat sumber data diganti, UI tidak perlu tahu. Mari kita buktikan, lapis demi lapis."
 
----
+## Scene 2 — Siklus Request–Response
+**Tujuan:** menunjukkan perjalanan satu permintaan data dan perubahan wujudnya: teks → objek → tampilan.
 
-## Catatan revisi dari versi sebelumnya
+**Layout:** rel 5 stasiun di atas (y=80, tiap stasiun 320px: ikon 96px, nomor, nama Inter Bold 44, subjudul Inter 30). Panggung muatan di bawah (x=80, y=340, 1760×630) menampilkan "apa yang sedang berjalan". Token kecil berpindah antar stasiun.
+Stasiun: ① **App** (`Smartphone`, "memanggil endpoint") · ② **HTTP GET** (chip method, "/users?limit=10") · ③ **Server** (`Cloud`, "mengirim JSON") · ④ **Converter** (`Cog`, "JSON → object") · ⑤ **UI State** (`Smartphone`, "ditampilkan di Compose").
 
-- **Penyelarasan 26 State & Branding**: Seluruh 6 scene kembali ke index dan kalkulasi frame asli (State 0 s.d. 25, total frame 768 / durasi 769 frame).
-- **Watermark Persistent**: Terletak di pojok kanan atas di seluruh scene dengan ukuran logo diperbesar (tinggi 38px) dan teks font JetBrains Mono Bold diperbesar (18px) kapital "SHAM", menggunakan komponen `<Img />` Remotion.
-- **Branding di Scene 1 State 0**: Header branding elegan memuat logo MGM, logo Curriculum, dan title **"PAPB - ARSITEKTUR"** saat editor mock terbuka.
-- **Branding di Scene 6 State 25**: Badge logo MGM + Curriculum + title "PAPB - ARSITEKTUR" pada kartu modal penutup rangkuman.
-- Scene 6: 6 stop (State 20–25), menampilkan kode terpadu dan rangkuman penutup.
+| Stop | Aksi | Yang tampil | Frames |
+|---|---|---|---|
+| 0 | `sceneIn` | Rel dengan ① aktif, lainnya redup. Panggung: teks "Aplikasi ingin menampilkan daftar mahasiswa. Datanya ada di server, bukan di dalam aplikasi." | 18 |
+| 1 | `railStep` ①→③ + `packetFly` | Token bergerak ① → ② → ③. Panggung: paket permintaan besar `GET /users?limit=10`, badge `HTTP GET`, baris `https://dummyjson.com` | 36 |
+| 2 | `railStep` (tetap di ③) + `jsonReveal` | Panggung: blok JSON mentah (16 baris, `03`) muncul linear; chip `200 OK` (`--ok`). Teks bawah: "Status code + body JSON harus dicek: sukses maupun gagal" | 36 |
+| 3 | `shrinkIntoMachine` | Token ke ④. Blok JSON mengecil dan masuk ke ikon `Cog` (berputar mengikuti progres). Di kanan muncul objek `UserResponse(...)` (`03`) | 36 |
+| 4 | `railStep` ⑤ + `phoneState` | Token ke ⑤. Panggung: mockup ponsel menampilkan kartu profil (Emily Johnson, email, university). Teks samping: "Sebelum tampil, DTO dipetakan menjadi Student (Scene 4)" | 36 |
 
+**Narasi:**
+- Stop 0: "Aplikasi butuh data, tetapi datanya ada di server. Bagaimana perjalanannya?"
+- Stop 1: "Aplikasi mengirim HTTP GET ke endpoint `/users`, dengan parameter `limit` 10."
+- Stop 2: "Server membalas dengan teks JSON mentah dan status code. Ini hanya teks, belum objek Kotlin. Status code dan body sama-sama harus dicek."
+- Stop 3: "Converter Gson membaca teks itu dan membentuk objek Kotlin: `UserResponse` berisi daftar `UserDto`."
+- Stop 4: "Objek itu diteruskan sampai menjadi UI State, lalu dirender Compose sebagai kartu profil."
+
+## Scene 3 — Aliran Data Lintas Layer
+**Tujuan:** aturan pemisahan tanggung jawab dan larangan jalan pintas. Menunjukkan perubahan wujud data di tiap layer.
+
+**Layout:** judul di atas (y=80). 5 kotak lapisan (320×220, y=330–550) memakai warna lapisan; REST API berwarna slate dengan garis tepi putus-putus dan caption "di luar aplikasi". Kotak Remote Data Source memuat sub-label `StudentApiService · RetrofitClient`. Di dalam tiap kotak: nama (Inter Bold 44) + caption mono 26 (berganti tiap stop). Panah event di atas kotak (y=290), panah response di bawah kotak (y=590). Teks aturan di bawah (y=700+, 42px).
+
+| Stop | Aksi | Yang tampil | Frames |
+|---|---|---|---|
+| 0 | `sceneIn` | Judul "Aliran Data Lintas Layer", 5 kotak, konektor tipis antar kotak. Caption kosong | 24 |
+| 1 | `flowArrow` (event) + `pulse` | Panah `--arrow-event` dari UI ke REST API, label "Event / Request". Caption berurutan: UI "klik / buka layar", ViewModel `loadStudents()`, Repository `getStudents(callback)`, Remote DS `api.getUsers().enqueue(…)`, REST API `GET /users?limit=10` | 60 |
+| 2 | `flowArrow` (response) + `pulse` + `shapeShift` | Panah `--arrow-state` dari REST API ke UI, label "Response / State". Caption berganti sesuai wujud data: REST API "JSON (teks)", Remote DS `Result<List<UserDto>>`, Repository `Result<List<Student>>`, ViewModel `HomeUiState`, UI "dirender" | 60 |
+| 3 | `arcForbidden` #1 | Panah dan caption memudar. Busur putus-putus dari UI langsung ke Remote DS (`StudentApiService`), tanda silang merah (`--err`) di tengah busur. Teks: "UI dilarang memanggil Retrofit atau `StudentApiService`". Teks kecil mono: "HomeScreen/DetailScreen tidak boleh mengimpor `retrofit2`" | 30 |
+| 4 | `arcForbidden` #2 | Busur kedua dari ViewModel langsung ke Remote DS (melompati Repository), tanda silang merah. Teks: "ViewModel meminta data lewat Repository, bukan langsung ke Remote Data Source". Busur pertama tetap tampil (redup) | 30 |
+
+**Narasi:**
+- Stop 0: "Lima layer, satu arah. Event bergerak ke kanan, response bergerak ke kiri."
+- Stop 1: "Event dari layar turun lapis demi lapis. Hanya Remote Data Source yang menyentuh Retrofit dan benar-benar memanggil server."
+- Stop 2: "Responsnya naik, dan wujudnya berubah di tiap layer: teks JSON, lalu DTO, lalu Student, lalu state, lalu piksel di layar."
+- Stop 3: "Godaan terbesar: memanggil Retrofit langsung dari layar. Dilarang. Cek mudahnya: `HomeScreen` tidak boleh mengimpor `retrofit2` atau `StudentApiService`."
+- Stop 4: "ViewModel juga tidak boleh melompati Repository. Repository tetap satu-satunya pintu akses data."
+
+## Scene 4 — Transformasi DTO ke Student
+**Tujuan:** membedakan kontrak API yang kaku (DTO) dari model yang dibutuhkan aplikasi (`Student`).
+
+**Layout:** tiga kolom: JSON (x=80, lebar 580), DTO (x=750, lebar 520), Student (x=1360, lebar 480). Kode JSON mono 24px (lihat `03`). Area bawah (y=620–980): kode mapper dan keterangan.
+
+| Stop | Aksi | Yang tampil | Frames |
+|---|---|---|---|
+| 0 | `sceneIn` | Kolom kiri: JSON ringkas (14 baris) dengan banyak field. Caption: "JSON mentah: banyak field, tidak semuanya dibutuhkan" | 24 |
+| 1 | `fieldLight` | Muncul kotak `UserResponse(users, total, skip, limit)` di kolom tengah atas. Pada JSON, `users` menyala ke `List<UserDto>`; `total`, `skip`, `limit` menyala dengan label "metadata paging, milik pembungkus" | 30 |
+| 2 | `fieldLight` | Muncul `UserDto(id, firstName, lastName, email, university)`. Hanya 5 field itu yang menyala di JSON; `age`, `phone`, `address`, dst. meredup dengan label "tidak dipakai". Keterangan: `data/remote/dto` | 30 |
+| 3 | `gateMerge` | Gerbang `toStudent()` di antara kolom tengah dan kanan. `firstName` dan `lastName` bergabung menjadi `name` ("Emily Johnson"); `id`, `email`, `university` lewat apa adanya. Keluar kartu `Student(id, name, email, university)`. Kode mapper (`03`) muncul di bawah | 36 |
+| 4 | `layerTag` | Penanda lapisan: ikon kotak **Repository** (hijau) menyala di atas gerbang dengan teks "Repository yang memetakan DTO → Student". Tiga poin (42px): "UI hanya mengenal Student" · "API berubah? cukup ubah DTO + mapper" · "Student sudah berubah dari program/year menjadi email/university" | 30 |
+
+**Narasi:**
+- Stop 0: "Server mengirim banyak field. Aplikasi kita hanya butuh sebagian."
+- Stop 1: "Pembungkusnya `UserResponse`. Perhatikan: `total`, `skip`, dan `limit` milik pembungkus ini, bukan milik tiap user."
+- Stop 2: "`UserDto` hanya memilih lima field yang kita butuhkan. Bentuknya mengikuti kontrak API, makanya ia tinggal di folder `data/remote/dto`."
+- Stop 3: "Mapper `toStudent()` menggabungkan nama depan dan belakang, lalu menghasilkan `Student`, model yang dipakai aplikasi."
+- Stop 4: "Yang memanggil mapper adalah Repository. UI hanya pernah melihat `Student`, jadi kalau kontrak API berubah, yang disentuh hanya DTO dan mapper."
+
+## Scene 5 — Callback Asinkron
+**Tujuan:** alasan memakai `Call.enqueue` dan cara hasilnya kembali sebagai `Result`.
+
+**Layout:** atas (y=80–470): dua lajur waktu kiri→kanan: **Jalur utama (UI)** dan **Jalur jaringan**. Bawah (y=500–960): panel kode (`03`), tinggi ±460, tanpa header.
+
+| Stop | Aksi | Yang tampil | Frames |
+|---|---|---|---|
+| 0 | `sceneIn` | Dua lajur kosong, judul "Kenapa memakai enqueue?". Lajur utama berisi balok-balok "gambar layar" yang berjalan (progres) | 24 |
+| 1 | `freezeLane` | Contoh SALAH: permintaan ditunggu di jalur utama. Lajur utama tersumbat (belang merah) dengan ikon beku dan label "UI membeku". Panel kode: contoh `execute()` (`03`) berlabel SALAH. Teks: "Di Android memicu NetworkOnMainThreadException" | 36 |
+| 2 | `laneBranch` | Contoh BENAR: permintaan bercabang turun ke jalur jaringan, jalur utama terus berjalan dengan chip "isLoading = true" dan spinner. Panel kode: `isLoading = true` lalu `repository.getStudents { … }` (`03`). Label "non-blocking" | 36 |
+| 3 | `doorFork` | Ujung jalur jaringan bercabang menjadi dua pintu: **onResponse** ("server membalas, apa pun status-nya") dan **onFailure** ("gagal sebelum ada balasan, mis. internet mati"). Panel kode: kode `enqueue` penuh, baris kunci 2 dan 10 | 36 |
+| 4 | `gateCheck` | Di pintu onResponse muncul gerbang `isSuccessful && body != null`. Lolos → jalur `--ok` ke `Result.success(body.users)`. Tidak lolos (mis. HTTP 404) → jalur `--err` ke `Result.failure("HTTP 404")`. Pintu onFailure → `Result.failure(t)`. Semua jalur gagal bermuara ke satu keranjang `Result.failure`. Panel: baris kunci 4, 5, 7 | 36 |
+| 5 | `laneReturn` | Hasil `Result` melompat balik ke jalur utama menjadi pembaruan `uiState`. Teks: "Callback mengembalikan hasil; ViewModel memperbarui state; layar digambar ulang". Panel kode: `onSuccess`/`onFailure` pada ViewModel, baris kunci 3 dan 5 | 36 |
+
+**Narasi:**
+- Stop 0: "Permintaan ke internet butuh waktu: bisa detik, bisa gagal. Bagaimana aplikasi menunggunya?"
+- Stop 1: "Kalau jalur utama ikut menunggu, layar membeku. Di Android ini bahkan bisa membuat aplikasi crash."
+- Stop 2: "Dengan `enqueue`, permintaan berjalan di jalur sendiri. Layar tetap hidup dan menampilkan loading."
+- Stop 3: "Ketika selesai, hasilnya masuk lewat salah satu dari dua pintu: `onResponse` atau `onFailure`."
+- Stop 4: "Hati-hati: `onResponse` bukan berarti sukses. Status 404 juga masuk sini. Kita cek `isSuccessful` dan body. Semua kegagalan, dari mana pun asalnya, dibungkus menjadi satu bentuk: `Result.failure`."
+- Stop 5: "Hasil itu kembali ke jalur utama, ViewModel memperbarui state, dan layar digambar ulang. Callback ini bersifat sementara; di materi berikutnya digantikan Coroutines dan Flow."
+
+## Scene 6 — Tiga Kondisi Layar
+**Tujuan:** layar tidak boleh mengira data selalu ada.
+
+**Layout:** kiri mockup ponsel (x=140, y=120, 440×800). Kanan (x=680, lebar 1160): panel state (y=120, tinggi ±220) dan panel `when` (y=370, tinggi ±520). Cabang `when` yang aktif disorot (`keyLines`).
+
+| Stop | Aksi | Yang tampil | Frames |
+|---|---|---|---|
+| 0 | `sceneIn` | Ponsel kosong (bar "Home"). Panel state: `HomeUiState()` bawaan. Panel `when` tanpa sorotan. Judul "Layar tidak boleh mengira data selalu ada" | 24 |
+| 1 | `phoneState` | **Loading.** Ponsel: spinner berputar di tengah. Panel state: `isLoading = true`. Cabang 1 menyala | 30 |
+| 2 | `phoneState` | **Error (internet mati).** Chip `WifiOff`. Ponsel: teks error + tombol "Coba Lagi". State: `isLoading = false`, `errorMessage = "Unable to resolve host…"`. Cabang 2 menyala | 30 |
+| 3 | `phoneState` + `tap` | **Coba Lagi ditekan.** Tombol berkedip (riak), lalu kembali ke loading. State: `uiState.copy(isLoading = true, errorMessage = null)`. Callout: `onRetry = homeViewModel::loadStudents`. Cabang 1 menyala | 24 |
+| 4 | `phoneState` | **Sukses.** Ponsel: daftar baris "1 - Emily Johnson" dst. (LazyColumn). State: `students = [10 item]`, `isLoading = false`, `errorMessage = null`. Cabang 3 menyala | 30 |
+
+**Narasi:**
+- Stop 0: "Layar tidak boleh mengira datanya selalu ada. State kita punya tiga kemungkinan: loading, error, dan data."
+- Stop 1: "Saat request berjalan, `isLoading` true, dan layar menampilkan spinner. Urutan cabang `when` penting: loading dicek paling dulu."
+- Stop 2: "Internet mati: pesan masuk ke `errorMessage` dan layar menampilkan error beserta tombol Coba Lagi."
+- Stop 3: "Tekan Coba Lagi: state kembali ke loading dan request diulang."
+- Stop 4: "Sukses: `students` terisi dan `LazyColumn` menampilkan daftar. UI hanya membaca state."
+
+## Scene 7 — Dari Mana Error Berasal? (pendukung)
+**Tujuan:** memetakan gejala di tabel troubleshooting modul ke tempat terjadinya. Boleh dipangkas.
+
+**Layout:** baris atas 5 kotak ringkas (320×90, y=80). Bagian tengah (y=210–520): dua pintu (onResponse dengan gerbang `isSuccessful`, onFailure) dan keranjang hasil `Result.success`/`Result.failure`. Bawah (y=560–960): kartu gejala dan kartu perbaikan.
+
+| Stop | Aksi | Yang tampil | Frames |
+|---|---|---|---|
+| 0 | `sceneIn` | Peta kosong. Judul "Dari mana error berasal?" Teks bawah: "Apa pun penyebabnya, ujungnya `Result.failure` → `errorMessage` → layar error + Coba Lagi" | 24 |
+| 1 | `symptomDrop` | Chip `UnknownHostException` jatuh ke pintu **onFailure**. Perbaikan: "Cek koneksi internet dan permission INTERNET" | 30 |
+| 2 | `symptomDrop` | Chip `HTTP 404` jatuh ke pintu **onResponse**, gerbang `isSuccessful = false`. Perbaikan: "Cek base URL, path @GET, @Path, dan ID" | 30 |
+| 3 | `symptomDrop` | Chip `Expected BEGIN_OBJECT…` menyorot kotak Remote DS (Gson/DTO), lalu jatuh ke **onFailure**. Perbaikan: "Samakan DTO dengan struktur JSON" | 30 |
+| 4 | `symptomDrop` | Chip `Cleartext HTTP traffic not permitted` jatuh ke **onFailure**. Perbaikan: "Gunakan endpoint HTTPS" | 30 |
+
+**Narasi:** Stop 1–4: satu kalimat per gejala: lokasi terjadinya, pintu yang dilalui, dan perbaikannya. Penutup di Stop 4: "Semua jalan menuju satu bentuk, `Result.failure`, jadi layar cukup punya satu cabang error."
+
+## Scene 8 — Peta Perubahan dan Jembatan (pendukung penutup)
+**Tujuan:** membuktikan janji Modul 06 dan menyiapkan materi berikutnya.
+
+**Layout:** sama dengan Modul 06 Scene 6, tetapi 5 kotak slot (320×110, y=80), lencana status (y=198), banner (y=276), panel diff (x=80, y=372, 1760×600).
+
+| Stop | Aksi | Yang tampil | Frames |
+|---|---|---|---|
+| 0 | `sceneIn` | Baris kotak. Banner: "Apa yang berubah dari Modul 06?". Panel berisi teks "Kita periksa lapis demi lapis, dari bawah ke atas" | 24 |
+| 1 | `focusBox` + `diffPanel` | Kotak Remote Data Source menyala, lencana "diganti". Banner: "Data Source → Remote Data Source". Diff `DIFFS[0]` | 30 |
+| 2 | `focusBox` + `diffPanel` | Repository, lencana "menyesuaikan". Banner: "Repository: kontrak jadi asinkron + memetakan DTO". Diff `DIFFS[1]` | 30 |
+| 3 | `focusBox` + `diffPanel` | ViewModel, lencana "menyesuaikan". Banner: "ViewModel: ikut asinkron, mengelola loading dan error". Diff `DIFFS[2]` | 30 |
+| 4 | `focusBox` + `diffPanel` | UI, lencana "hampir tetap". Banner: "UI: tidak mengenal Retrofit, hanya render state". Diff `DIFFS[3]` | 30 |
+| 5 | `summaryPanel` | Semua kotak terang. Kotak REST API berlencana "baru". Panel dua kolom **Berubah** vs **Tetap** (`03`). Baris bawah: "Berikutnya: callback → Kotlin Coroutines & Flow" (label, tanpa kode) | 30 |
+
+**Narasi:**
+- Stop 1–4: satu kalimat per lapisan sesuai banner; tegaskan bahwa perubahan merambat hanya sejauh kebutuhan asinkron, dan UI tidak pernah mengimpor Retrofit.
+- Stop 5: "Janji Modul 06 terbukti: perubahan terlokalisasi, UI tidak mengenal Retrofit, dan navigasi Home, Detail, Back tidak berubah. Callback ini sementara; berikutnya kita sederhanakan dengan Coroutines dan Flow."

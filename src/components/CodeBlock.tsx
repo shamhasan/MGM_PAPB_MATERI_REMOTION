@@ -11,6 +11,11 @@ export interface CodeBlockProps {
   showLineNumbers?: boolean;
   startLineNumber?: number;
   layerOf?: (Layer | null)[];
+  fontSize?: number;
+  lineHeight?: number;
+  lineHeightPx?: number;
+  gutterWidth?: number;
+  gutterPaddingRight?: number;
   style?: React.CSSProperties;
   lineEmphasis?: (lineIdx: number) => number | { opacity?: number; background?: number | string };
 }
@@ -24,9 +29,15 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
   showLineNumbers = true,
   startLineNumber = 1,
   layerOf,
+  fontSize = 30,
+  lineHeight = 1.4,
+  lineHeightPx,
+  gutterWidth = 56,
+  gutterPaddingRight = 28,
   style,
   lineEmphasis,
 }) => {
+  const computedLineHeightPx = lineHeightPx ?? Math.round(fontSize * lineHeight);
   const isTyping = typeProgress !== undefined && typeProgress < 1;
   const totalChars = code.length;
   const visibleChars =
@@ -41,8 +52,8 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
     <div
       style={{
         fontFamily: "'JetBrains Mono', monospace",
-        fontSize: 30,
-        lineHeight: 1.4,
+        fontSize,
+        lineHeight,
         color: "var(--text-light, #F8F8F2)",
         opacity: dimmed ? 0.3 : 1,
         userSelect: "none",
@@ -102,7 +113,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      height: 42, // 30px * 1.4
+                      height: computedLineHeightPx,
                       position: "relative",
                       opacity: lineOpacity,
                       backgroundColor: lineBackground,
@@ -113,13 +124,13 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
                     {showLineNumbers && (
                       <div
                         style={{
-                          width: 56,
-                          minWidth: 56,
+                          width: gutterWidth,
+                          minWidth: gutterWidth,
                           textAlign: "right",
-                          paddingRight: 28,
+                          paddingRight: gutterPaddingRight,
                           color: "var(--text-muted, #64748B)",
-                          fontSize: 30,
-                          lineHeight: "42px",
+                          fontSize,
+                          lineHeight: `${computedLineHeightPx}px`,
                           userSelect: "none",
                         }}
                       >
@@ -134,7 +145,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
                         whiteSpace: "pre",
                         display: "flex",
                         alignItems: "center",
-                        height: 42,
+                        height: computedLineHeightPx,
                       }}
                     >
                       {lineData.map(

@@ -3,14 +3,17 @@ import { spring, interpolate, Easing } from "remotion";
 import { Layer } from "../assets/code";
 import { FPS } from "../deck/stops";
 
+export type LayerId = Layer | "datasource" | "repository" | "viewmodel";
+
 export interface LayerCardProps {
-  layer: Layer;
+  layer: LayerId;
   roleName: string;
   chipLabel: string;
   taskLabel: string;
   taskDetail: string;
   icon: React.ReactNode;
   progress: number; // 0 to 1
+  caption?: string; // e.g. "di luar aplikasi" untuk varian api
   style?: React.CSSProperties;
 }
 
@@ -22,6 +25,7 @@ export const LayerCard: React.FC<LayerCardProps> = ({
   taskDetail,
   icon,
   progress,
+  caption,
   style,
 }) => {
   if (progress <= 0) return null;
@@ -42,8 +46,30 @@ export const LayerCard: React.FC<LayerCardProps> = ({
     extrapolateRight: "clamp",
   });
 
-  const colorVar = `var(--c-${layer === "datasource" ? "ds" : layer === "viewmodel" ? "vm" : layer === "repository" ? "repo" : "ui"})`;
-  const onColorVar = `var(--on-${layer === "datasource" ? "ds" : layer === "viewmodel" ? "vm" : layer === "repository" ? "repo" : "ui"})`;
+  const isApi = layer === "api";
+  const isDs = layer === "rds" || layer === "datasource";
+  const isVm = layer === "vm" || layer === "viewmodel";
+  const isRepo = layer === "repo" || layer === "repository";
+
+  const colorVar = isApi
+    ? "var(--c-api, #475569)"
+    : isDs
+    ? "var(--c-ds, #1E3A8A)"
+    : isVm
+    ? "var(--c-vm, #F97316)"
+    : isRepo
+    ? "var(--c-repo, #22C55E)"
+    : "var(--c-ui, #3B82F6)";
+
+  const onColorVar = isApi
+    ? "var(--on-api, #FFFFFF)"
+    : isDs
+    ? "var(--on-ds, #FFFFFF)"
+    : isVm
+    ? "var(--on-vm, #0F172A)"
+    : isRepo
+    ? "var(--on-repo, #0F172A)"
+    : "var(--on-ui, #FFFFFF)";
 
   return (
     <div
@@ -60,10 +86,12 @@ export const LayerCard: React.FC<LayerCardProps> = ({
         alignItems: "center",
         textAlign: "center",
         boxShadow: "0 16px 40px rgba(15, 23, 42, 0.15)",
+        border: isApi ? "4px dashed rgba(255, 255, 255, 0.7)" : undefined,
         transform: `translateY(${translateY}px) scale(${scale})`,
         opacity,
         fontFamily: "'Inter', sans-serif",
         userSelect: "none",
+        position: "relative",
         ...style,
       }}
     >
@@ -94,7 +122,7 @@ export const LayerCard: React.FC<LayerCardProps> = ({
         {roleName}
       </h3>
 
-      {/* Chip: (UI), (ViewModel), etc. */}
+      {/* Chip: (UI), (ViewModel), dll. */}
       <div
         style={{
           marginTop: 14,
@@ -111,6 +139,22 @@ export const LayerCard: React.FC<LayerCardProps> = ({
       >
         {chipLabel}
       </div>
+
+      {/* Caption tambahan (misal: "di luar aplikasi" pada varian api) */}
+      {(caption || isApi) && (
+        <div
+          style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: 24,
+            fontWeight: 600,
+            opacity: 0.85,
+            marginBottom: 16,
+            color: onColorVar,
+          }}
+        >
+          {caption || "di luar aplikasi"}
+        </div>
+      )}
 
       {/* Task Description (Inter 42px min) */}
       <div

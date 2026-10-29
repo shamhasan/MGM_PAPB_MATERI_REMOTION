@@ -1,32 +1,61 @@
 :root {
-  /* Lapisan (paten, tidak boleh diubah) */
-  --c-ui: #3B82F6;  /* UI / Composable */
-  --c-vm: #F97316;  /* ViewModel */
-  --c-repo: #22C55E;  /* Repository */
-  --c-ds: #1E3A8A;  /* Data Source */
+  /* Identitas Lapisan Arsitektur (Konsisten antar Modul) */
+  --c-ui: #3B82F6;        /* Composable UI */
+  --c-vm: #F97316;        /* ViewModel */
+  --c-repo: #22C55E;      /* Repository */
+  --c-ds: #1E3A8A;        /* Remote Data Source */
+  --c-server: #6366F1;    /* REST API Server (DummyJSON) */
 
-  /* Warna teks DI ATAS warna lapisan */
+  /* Warna Teks di Atas Latar Lapisan */
   --on-ui: #FFFFFF;
   --on-vm: #0F172A;
   --on-repo: #0F172A;
   --on-ds: #FFFFFF;
+  --on-server: #FFFFFF;
 
-  /* Latar */
-  --bg-dark: #191A21;  /* Scene 1, awal Scene 3 */
-  --editor-bg: #282A36;  /* jendela editor & kartu kode (Dracula) */
-  --bg-light: #F8FAFC;  /* Scene 2, akhir Scene 3, 4, 5 */
+  /* Token Delta Modul 07 (docs/04-design-delta.md) */
+  --c-api:  #475569;  /* REST API (di luar aplikasi) */
+  --on-api: #FFFFFF;
+  --ok:     #16A34A;  /* sukses (Scene 5-7) */
+  --on-ok:  #0F172A;
+  --err:    #DC2626;  /* gagal (Scene 5-7) */
+  --on-err: #FFFFFF;
 
-  /* Teks */
+  /* Status Jaringan & Tri-State UI */
+  --state-loading: #0284C7; /* Indikator CircularProgressIndicator */
+  --state-error: #EF4444;   /* Kondisi Failure / UnknownHostException */
+  --state-success: #16A34A; /* Kondisi Data Berhasil Dirender */
+
+  /* Latar Belakang Kanvas */
+  --bg-dark: #191A21;     /* Scene 1, Scene 3 Awal */
+  --editor-bg: #282A36;   /* Jendela Editor Mock & Kartu Kode (Dracula) */
+  --bg-light: #F8FAFC;    /* Scene 2, Scene 3 Akhir, Scene 4, 5, 6 */
+
+  /* Tipografi Teks */
   --text-dark: #0F172A;
   --text-light: #F8F8F2;
   --text-muted: #64748B;
 
-  /* Efek */
-  --laser: #EF4444;        /* garis potong + border kartu peringatan */
-  --arrow-event: #0F172A;  /* panah user event */
-  --arrow-state: #A855F7;  /* panah UI state */
+  /* Efek Visual & Panah Aliran Data */
+  --laser: #EF4444;        /* Garis potong laser neon & border peringatan */
+  --arrow-event: #0F172A;  /* Panah Request HTTP / User Event (ke kanan) */
+  --arrow-state: #9333EA;  /* Panah Respon Data / UI State (ke kiri) */
 
-  /* Layout */
+  /* Dimensi Layout */
   --safe: 80px;
   --gap: 40px;
+}
+
+/* Ornamen Berputar Dekoratif (docs/05-delta bagian 2) */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
 }

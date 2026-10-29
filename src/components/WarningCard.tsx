@@ -4,7 +4,7 @@ import { AlertTriangle } from "lucide-react";
 import { FPS } from "../deck/stops";
 
 export interface WarningCardProps {
-  progress: number; // 0 to 1 (from useStopProgress(0, 2))
+  progress: number; // 0 to 1
   style?: React.CSSProperties;
 }
 
@@ -31,9 +31,9 @@ export const WarningCard: React.FC<WarningCardProps> = ({
   });
 
   const reasons = [
-    "Dua pekerjaan berbeda, satu tempat",
-    "Ubah satu, yang lain ikut berisiko",
-    "Sulit dites dengan data palsu",
+    "UI memikul beban HTTP",
+    "Gagal koneksi langsung merusak fungsi tampilan",
+    "Sangat mustahil diuji secara terisolasi",
   ];
 
   return (
@@ -78,14 +78,14 @@ export const WarningCard: React.FC<WarningCardProps> = ({
         />
         <h2
           style={{
-            fontSize: 48,
+            fontSize: 44,
             fontWeight: 700,
             color: "var(--text-light, #F8F8F2)",
             margin: 0,
             letterSpacing: "-0.01em",
           }}
         >
-          Satu fungsi, banyak alasan untuk berubah
+          Jaringan Langsung di UI: Rapuh & Berbahaya
         </h2>
       </div>
 
@@ -104,25 +104,23 @@ export const WarningCard: React.FC<WarningCardProps> = ({
               display: "flex",
               alignItems: "center",
               gap: 18,
-              fontSize: 42,
-              fontWeight: 500,
-              lineHeight: 1.3,
             }}
           >
             <div
               style={{
-                width: 12,
-                height: 12,
+                width: 10,
+                height: 10,
                 borderRadius: "50%",
                 backgroundColor: "var(--laser, #EF4444)",
                 flexShrink: 0,
-                boxShadow: "0 0 8px var(--laser, #EF4444)",
               }}
             />
             <span
               style={{
+                fontSize: 34,
+                fontWeight: 500,
                 color: "var(--text-light, #F8F8F2)",
-                fontWeight: 600,
+                lineHeight: 1.4,
               }}
             >
               {text}
