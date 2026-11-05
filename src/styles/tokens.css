@@ -21,6 +21,27 @@
   --err:    #DC2626;  /* gagal (Scene 5-7) */
   --on-err: #FFFFFF;
 
+  /* Identitas Paradigma Asinkron & Reaktif Modul 08 (docs/04-design-delta.md) */
+  --c-coroutine: #8b5cf6; /* Ungu: Penanda eksekusi suspend / Coroutine */
+  --on-coroutine: #ffffff;
+  --c-flow: #06b6d4; /* Cyan: Pipa aliran reaktif / Flow Stream */
+  --on-flow: #0f172a; /* Teks gelap di atas warna cyan */
+  --c-bookmark: #eab308; /* Emas: Pita pembatas buku (Suspension Point) */
+  --on-bookmark: #0f172a; /* Teks gelap di atas warna emas */
+  --c-cancel: #ef4444; /* Merah terang: Pembatalan collectLatest / burst */
+  --on-cancel: #ffffff;
+
+  /* Indikator Daur Hidup UI Compose (Lifecycle-Aware) */
+  --life-active: #16a34a; /* Hijau: Lifecycle RESUMED / STARTED (Koleksi Berjalan) */
+  --on-life-act: #ffffff;
+  --life-idle: #f59e0b; /* Kuning: Lifecycle STOPPED (Koleksi Dijeda) */
+  --on-life-idle: #0f172a;
+
+  /* Warna Pipa Kaca Konveyor Flow */
+  --pipe-bg: rgba(15, 23, 42, 0.05);
+  --pipe-border: rgba(6, 182, 212, 0.35);
+  --pipe-glow: rgba(6, 182, 212, 0.2);
+
   /* Status Jaringan & Tri-State UI */
   --state-loading: #0284C7; /* Indikator CircularProgressIndicator */
   --state-error: #EF4444;   /* Kondisi Failure / UnknownHostException */

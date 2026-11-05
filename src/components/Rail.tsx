@@ -102,7 +102,6 @@ export const Rail: React.FC<RailProps> = ({
               position: "relative",
               zIndex: 2,
               opacity: slotOpacity,
-              transition: "opacity 0.2s ease",
             }}
           >
             {/* Number Circle (56px) */}

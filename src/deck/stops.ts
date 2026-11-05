@@ -2,14 +2,12 @@ export const FPS = 30;
 
 // Nilai angka merepresentasikan frame transisi MENUJU stop tersebut
 export const SCENES = [
-  { id: 'recap',   stops: [0, 30] },
-  { id: 'cycle',   stops: [18, 36, 36, 36, 36] },
-  { id: 'layers',  stops: [24, 60, 60, 30, 30] },
-  { id: 'mapping', stops: [24, 30, 30, 36, 30] },
-  { id: 'async',   stops: [24, 36, 36, 36, 36, 36] },
-  { id: 'states',  stops: [24, 30, 30, 24, 30] },
-  { id: 'errors',  stops: [24, 30, 30, 30, 30] },
-  { id: 'summary', stops: [24, 30, 30, 30, 30, 30] },
+  { id: "painpoints", stops: [0, 30, 30, 30] }, // Scene 1: State 0–3   (90 frame)
+  { id: "suspend", stops: [24, 36, 36, 30, 24] }, // Scene 2: State 4–8   (150 frame)
+  { id: "structured", stops: [24, 30, 30, 36, 30] }, // Scene 3: State 9–13  (150 frame)
+  { id: "stateflow", stops: [24, 30, 30, 36, 30] }, // Scene 4: State 14–18 (150 frame)
+  { id: "flowsearch", stops: [24, 30, 36, 30, 36, 30] }, // Scene 5: State 19–24 (186 frame)
+  { id: "summary", stops: [24, 30, 30, 30, 30, 30] }, // Scene 6: State 25–30 (174 frame)
 ] as const;
 
 export interface TimelineEntry {
@@ -44,12 +42,12 @@ for (let sIdx = 0; sIdx < SCENES.length; sIdx++) {
   }
 }
 
-// SETTLED: number[] → nilai `end` unik & terurut = daftar state (harus 39 item)
+// SETTLED: number[] → nilai `end` unik & terurut = daftar state (harus 31 item)
 export const SETTLED: number[] = Array.from(
   new Set(TIMELINE.map((t) => t.end))
 ).sort((a, b) => a - b);
 
-// TOTAL_FRAMES = SETTLED.at(-1)! + 1 → durasi komposisi (1207)
+// TOTAL_FRAMES = SETTLED.at(-1)! + 1 → durasi komposisi (901)
 export const TOTAL_FRAMES = SETTLED[SETTLED.length - 1] + 1;
 
 export function lookup(

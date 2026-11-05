@@ -66,7 +66,6 @@ export const DoorFork: React.FC<DoorForkProps> = ({
           padding: "16px 20px",
           boxSizing: "border-box",
           position: "relative",
-          transition: "all 0.2s ease",
         }}
       >
         <div
@@ -170,7 +169,6 @@ export const DoorFork: React.FC<DoorForkProps> = ({
           padding: "16px 20px",
           boxSizing: "border-box",
           position: "relative",
-          transition: "all 0.2s ease",
         }}
       >
         <div

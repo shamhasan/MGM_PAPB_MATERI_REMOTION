@@ -7,7 +7,7 @@ interface WatermarkProps {
   isLightBg?: boolean;
 }
 
-export const Watermark: React.FC<WatermarkProps> = ({ isLightBg = false }) => {
+export const Watermark: React.FC<WatermarkProps> = ({ isLightBg = true }) => {
   return (
     <div
       style={{

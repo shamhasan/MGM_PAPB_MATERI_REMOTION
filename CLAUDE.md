@@ -1,64 +1,145 @@
-# CLAUDE.md — Deck Interaktif Modul 07: REST API & Retrofit
+# CLAUDE.md — Deck Interaktif Modul 08: Kotlin Coroutines & Flow
 
 ## Proyek
-Presentasi interaktif (BUKAN video MP4) untuk Modul Praktikum 07 (PAPB CIF62041, FILKOM UB): "Mengambil Data Eksternal dengan REST API & Retrofit". Lanjutan deck Modul 06. Dosen menekan Next/Prev; animasi maju atau mundur satu `Stop` per tekanan.
 
-Fokus visual: **perubahan wujud data** (JSON → DTO → Student → UiState → layar) dan **batas arsitektur** (siapa boleh memanggil siapa).
+Presentasi interaktif (BUKAN video MP4) untuk Modul Praktikum 08 (PAPB CIF62041, FILKOM UB): "Asynchronous Programming dengan Kotlin Coroutines & Flow". Lanjutan langsung dari deck Modul 07. Dosen mengendalikan transisi dengan menekan Next/Prev; animasi maju atau mundur satu `Stop` per penekanan tombol.
 
-## Titik awal (kerjakan sekali)
-Pekerjaan ini berjalan di branch Git khusus Modul 07 yang dibuat dari branch Modul 06 terbaru (mesin Stop, driver, dan komponen sudah ada dan teruji).
-1. `docs/` berisi dokumen Modul 07 (menggantikan docs Modul 06 di branch ini).
-2. Dua dokumen Modul 06 masih dibutuhkan sebagai dasar dokumen delta. Pastikan keduanya ada di `docs-modul06/`: `04-design-system.md` dan `05-animation-spec.md` (salin dari branch Modul 06 sebelum `docs/` diganti). Dokumen Modul 06 lainnya tidak diperlukan.
-3. PERTAHANKAN: `src/deck/` (driver dan hook tetap; isi `stops.ts` diganti), `src/components/` (CodeBlock, CodePanel, DiffPanel, EditorWindow, FlowArrow, dst.), `src/styles/tokens.css` (tambahan token ada di `docs/04-design-delta.md`), `src/web/`, skrip `package.json`.
-4. Hapus scene Modul 06 (`Scene1Spaghetti`, `Scene2Restaurant`, `SceneSplit`, `SceneFlow`) hanya setelah scene Modul 07 berjalan.
+Fokus visual: **evolusi komputasi asinkron** (titik jenuh callback $\rightarrow$ penangguhan linear `suspend` $\rightarrow$ disiplin pembatalan `viewModelScope` $\rightarrow$ penampung `StateFlow` $\rightarrow$ aliran pipa reaktif `Flow`) dan **integritas batas arsitektur**.
 
-## Baca dulu (berurutan, sebelum menulis kode)
+## Titik Awal (Kerjakan Sekali)
+
+Pekerjaan ini berjalan di branch Git khusus Modul 08 yang dibuat dari branch Modul 07 terbaru (mesin Stop, driver navigasi, font, dan komponen dasar sudah teruji).
+
+1. `docs/` berisi 7 berkas spesifikasi Modul 08 (`01-brief.md` hingga `07-tasks.md`).
+
+2. Dokumen acuan modul sebelumnya tersimpan di `docs-modul07/` (`04-design-delta.md` dan `05-animation-delta.md`) serta `docs-modul06/` (`04-design-system.md` dan `05-animation-spec.md`).
+
+3. **PERTAHANKAN**:
+
+- `src/deck/driver.ts` dan hook `useStopProgress.ts` (tidak boleh diubah).
+
+- `src/components/Watermark.tsx` (branding persisten "SHAM", logo MGM, dan logo Curriculum di pojok kanan atas).
+
+- `src/components/` komponen dasar: `EditorWindow`, `CodeBlock`, `CodePanel`, `DiffPanel`, `PhoneMock`.
+
+- Konfigurasi build dan dependensi `package.json`.
+
+4. **HAPUS SCENE LAMA**: Komponen scene Modul 07 (`Scene1Recap`, `Scene2Cycle`, `Scene3Layers`, `Scene4Mapping`, `Scene5Async`, `Scene6States`, `Scene7Errors`, `Scene8Summary`) hanya boleh dihapus pada Milestone M9 setelah seluruh scene Modul 08 berfungsi stabil.
+
+## Baca Dulu (Berurutan, Sebelum Menulis Kode)
+
 1. `docs/01-brief.md`
 2. `docs/02-storyboard.md`
 3. `docs/03-code-assets.md`
-4. `docs/04-design-delta.md` (lalu `docs-modul06/04-design-system.md` untuk bagian yang tidak berubah)
-5. `docs/05-animation-delta.md` (lalu `docs-modul06/05-animation-spec.md`)
+4. `docs/04-design-delta.md` (lalu rujuk `docs-modul07/` dan `docs-modul06/` untuk token dasar yang tidak berubah)
+
+5. `docs/05-animation-delta.md` (lalu rujuk aturan easing dasar di `docs-modul06/`)
+
 6. `docs/06-acceptance.md`
-7. `docs/07-tasks.md` — kerjakan per milestone; berhenti dan lapor di akhir tiap milestone.
+7. `docs/07-tasks.md` — kerjakan strictly per milestone; laporkan hasil dan tunggu konfirmasi sebelum melangkah ke milestone berikutnya.
 
-Jika dokumen bertentangan, prioritas: 02 > 05-delta > 04-delta > 03 > 01 > dokumen Modul 06. Jangan menebak; catat pertanyaan di akhir laporan.
+Jika terjadi kontradiksi antar dokumen, pedoman prioritas resolusi adalah:
 
-## Stack (terkunci; dependensi baru butuh izin)
-Sama dengan Modul 06: Vite + React + TypeScript (strict), `remotion`, `@remotion/player`, `prism-react-renderer`, `lucide-react`, `@fontsource/inter`, `@fontsource/jetbrains-mono`. Tidak ada library jaringan.
+**02-storyboard > 05-animation-delta > 04-design-delta > 03-code-assets > 01-brief > dokumen modul sebelumnya**.
 
-## Struktur folder (tambahan/perubahan)
+## Stack Terkunci (Tanpa Dependensi Baru)
+
+Sama dengan Modul 06 dan 07: Vite + React + TypeScript (strict mode), `remotion`, `@remotion/player`, `prism-react-renderer`, `lucide-react`, `@fontsource/inter`, `@fontsource/jetbrains-mono`. Dilarang menginstal library runtime HTTP atau Android pihak ketiga.
+
+## Struktur Folder Target
+
 ```
 src/
-  deck/stops.ts            # diganti: SCENES Modul 07 (lihat docs/05-delta)
+  deck/
+    stops.ts               # Diperbarui: SCENES Modul 08 (31 state settled, durasi 901 frame)
+    driver.ts              # Driver rAF navigasi maju-mundur
+    useStopProgress.ts     # Hook kalkulasi progres stop (0 -> 1)
   scenes/
-    Scene1Recap.tsx
-    Scene2Cycle.tsx
-    Scene3Layers.tsx
-    Scene4Mapping.tsx
-    Scene5Async.tsx
-    Scene6States.tsx
-    Scene7Errors.tsx
-    Scene8Summary.tsx
-  components/              # baru: PhoneMock, JsonBlock, Packet, Rail, LaneTimeline, DoorFork, StatePanel, SymptomChip
-  assets/code.ts           # konstanta dari docs/03
+    Scene1PainPoints.tsx   # State 0-3: Aturan Main Thread & Kerapuhan Callback
+    Scene2Suspend.tsx      # State 4-8: Suspend, Pembatas Buku, & Main-Safety
+    Scene3Structured.tsx   # State 9-13: viewModelScope & CancellationException
+    Scene4StateFlow.tsx    # State 14-18: MutableStateFlow vs StateFlow & Lifecycle UI
+    Scene5FlowSearch.tsx   # State 19-24: Pipa Pencarian Reaktif Flow (Gambar 3 Modul 08)
+    Scene6Summary.tsx      # State 25-30: Diff Refactoring & Jembatan ke Modul 09
+  components/
+    BookmarkIndicator.tsx  # Ornamen pita emas penanda suspensi baris kode
+    FlowPipeline.tsx       # Konveyor rel 7 node operator Flow
+    OperatorNode.tsx       # Kartu filter debounce, distinct, dan collectLatest
+    LifecycleBadge.tsx     # Indikator status siklus hidup Compose (Active/Paused)
+    PhoneMock.tsx          # Mockup ponsel Android interaktif
+    Watermark.tsx          # Watermark persisten "SHAM" & logo perkuliahan
+  assets/
+    code.ts                # Seluruh konstanta kode Kotlin Modul 08 (dari docs/03)
+
 ```
 
-## Perintah
-`npm run dev` (Remotion Studio, untuk scrub frame), `npm run present` (mode presentasi), `npm run build:web` (build statis offline), `npx tsc --noEmit`. Jangan memakai `npm run build` bawaan untuk acceptance.
+## Perintah Kerja
 
-## Aturan keras
-1. **Waktu = fungsi dari frame global** lewat `useStopProgress`. Dilarang `setTimeout`, `Date.now()` untuk animasi, `player.play()`, dan CSS transition/animation. SATU pengecualian: ornamen berputar dekoratif `.spinner` boleh memakai CSS `@keyframes` (lihat `docs/05-delta`).
-2. **Props Player wajib:** `controls={false}`, `clickToPlay={false}`, `doubleClickToFullscreen={false}`, `spaceKeyToPlayOrPause={false}`, `loop={false}`.
-3. **Input:** `ArrowRight`/`PageDown`/`Space`/klik = Next; `ArrowLeft`/`PageUp` = Prev; abaikan `e.repeat`; handler dipasang SATU kali dengan cleanup. Tanpa tombol di layar.
-4. **Narasi dosen BUKAN konten layar.**
-5. **Warna:** token dari `docs-modul06/04` dan `docs/04-delta`. Dilarang hex langsung di komponen. Panah event dan panah response memakai `--arrow-event` dan `--arrow-state`, BUKAN biru dan hijau (biru = UI, hijau = Repository). Warna `--ok`/`--err` hanya untuk Scene 5–7.
-6. **Offline total.** Deck TIDAK boleh memanggil `dummyjson.com` atau jaringan apa pun. Semua JSON adalah konstanta di `src/assets/code.ts`.
-7. **Bahasa:** teks layar Bahasa Indonesia; istilah teknis tetap Inggris; identifier kode Inggris.
-8. **Scope:** tanpa backend, tanpa implementasi Retrofit sungguhan, tanpa Coroutines/Flow/Room (hanya label teaser), tanpa POST/PUT/DELETE. **Jangan menampilkan data sensitif palsu dari DummyJSON** (password, ssn, nomor kartu, iban, wallet), meskipun hanya contoh.
-9. TypeScript strict, tanpa `any`.
-10. **Selesai** = lolos `docs/06-acceptance.md`, termasuk `npm run build:web` dan `npx tsc --noEmit`.
-11. Skills Remotion bawaan boleh dipakai untuk praktik terbaik API; jika bertentangan dengan dokumen ini, dokumen ini menang.
-12. Render video (`remotion render`) tidak dipakai.
+- `npm run dev` : Menjalankan Remotion Studio untuk verifikasi visual per frame.
 
-## Format laporan milestone
-Apa yang dibuat, cara memverifikasi, penyimpangan dari dokumen (jika ada), pertanyaan terbuka.
+- `npm run present` : Menjalankan deck pada mode presentasi dosen.
+
+- `npx tsc --noEmit` : Memastikan pengetikan TypeScript bebas error tanpa `any`.
+
+- `npm run build:web` : Membangun bundel web statis offline untuk pengujian penerimaan.
+
+## Aturan Keras
+
+1. **Waktu Murni Fungsi Frame Global**: Seluruh animasi dihitung via `useStopProgress`. Dilarang menggunakan `setTimeout`, `setInterval`, `Date.now()`, `player.play()`, maupun CSS transition/animation. SATU-SATUNYA pengecualian: class `.spinner` dekoratif boleh memakai CSS `@keyframes` rotasi agar tetap berputar saat timeline diam pada state stabil.
+
+2. **Konfigurasi Player Remotion**:
+   `controls={false}`, `clickToPlay={false}`, `doubleClickToFullscreen={false}`, `spaceKeyToPlayOrPause={false}`, `loop={false}`.
+
+3. **Navigasi Keyboard & Klik**:
+
+- Next: `ArrowRight`, `PageDown`, `Space`, atau klik kiri kanvas.
+
+- Prev: `ArrowLeft`, `PageUp`.
+
+- Wajib mengabaikan `e.repeat === true` (cegah lompatan frame saat tombol ditekan lama).
+
+- Listener dipasang tepat satu kali dengan fungsi _cleanup_ yang benar.
+
+4. **Narasi Dosen BUKAN Teks Layar**: Naskah narasi di storyboard adalah panduan lisan dan dilarang ditampilkan sebagai elemen teks di layar presentasi.
+
+5. **Kepatuhan Palet Warna & Aksesibilitas**:
+
+- Seluruh warna wajib menggunakan variabel CSS dari `tokens.css` (dilarang menulis hex langsung di komponen JSX).
+
+- Panah event = `--arrow-event`, panah response/state = `--arrow-state` (DILARANG menggunakan warna biru atau hijau untuk panah).
+
+- Token khusus Modul 08: `--c-coroutine` (eksekusi suspend), `--c-flow` (pipa stream reaktif), `--c-bookmark` (penanda suspensi), dan `--c-cancel` (pembatalan request).
+
+6. **Kemandirian Offline 100%**: Tidak boleh ada pemanggilan `fetch`, URL dummyjson live, maupun resource eksternal saat runtime.
+
+7. **Standar Konten & Kebersihan Data**:
+
+- Istilah UI dalam Bahasa Indonesia baku; istilah teknis komputasi dan identifier kode tetap Bahasa Inggris.
+
+- Dilarang menampilkan field data sensitif DummyJSON (`password`, `ssn`, nomor kartu, dsb.).
+
+8. **Kepatuhan Materi Praktikum**:
+
+- Seluruh pemanggilan jaringan di data layer berstatus `suspend fun` (tanpa `Call<T>` dan `enqueue`).
+
+- Blok catch error wajib menyertakan `catch (e: CancellationException) { throw e }`.
+
+- State holder memakai `MutableStateFlow` (private) + `StateFlow` (public).
+
+- Composable UI mengoleksi state via `collectAsStateWithLifecycle()`.
+
+9. **Kriteria Selesai**: Dinyatakan selesai bila lolos seluruh butir verifikasi di `docs/06-acceptance.md`, `npx tsc --noEmit` bersih, dan `npm run build:web` berhasil.
+
+## Format Laporan per Milestone
+
+Setiap selesai mengeksekusi satu milestone, sajikan laporan terstruktur:
+
+1. **Pekerjaan Selesai**: Rincian berkas yang dibuat atau dimodifikasi.
+
+2. **Metode Verifikasi**: Perintah terminal dan hasil visual stop yang diuji.
+
+3. **Deviasi Spesifikasi**: Penyesuaian teknis terhadap dokumen (jika ada).
+
+4. **Pertanyaan Terbuka**: Isu yang membutuhkan konfirmasi sebelum lanjut ke milestone berikutnya.
+
+---

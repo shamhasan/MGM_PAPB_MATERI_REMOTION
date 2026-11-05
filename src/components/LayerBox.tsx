@@ -85,7 +85,6 @@ export const LayerBox: React.FC<LayerBoxProps> = ({
           ? `0 0 0 6px rgba(255, 255, 255, 0.3), 0 16px 40px rgba(0, 0, 0, 0.3)`
           : "0 10px 28px rgba(0, 0, 0, 0.12)",
         opacity: isDimmed ? 0.35 : 1,
-        transition: "all 0.2s ease",
         ...style,
       }}
     >

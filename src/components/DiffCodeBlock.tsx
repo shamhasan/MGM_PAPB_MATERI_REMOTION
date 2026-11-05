@@ -1,9 +1,8 @@
 import React from "react";
 
-export interface DiffLine {
-  type: "normal" | "add" | "del";
-  text: string;
-}
+export type DiffLine =
+  | { type: "normal" | "add" | "del"; text: string }
+  | { kind: " " | "+" | "-"; text: string };
 
 export interface DiffCodeBlockProps {
   lines: DiffLine[];
@@ -18,8 +17,8 @@ export const DiffCodeBlock: React.FC<DiffCodeBlockProps> = ({
     <div
       style={{
         fontFamily: "'JetBrains Mono', monospace",
-        fontSize: 15,
-        lineHeight: 1.45,
+        fontSize: 16,
+        lineHeight: 1.5,
         display: "flex",
         flexDirection: "column",
         gap: 3,
@@ -32,11 +31,14 @@ export const DiffCodeBlock: React.FC<DiffCodeBlockProps> = ({
         let color = "var(--text-light, #F8F8F2)";
         let prefix = "  ";
 
-        if (item.type === "add") {
+        const isAdd = ("type" in item && item.type === "add") || ("kind" in item && item.kind === "+");
+        const isDel = ("type" in item && item.type === "del") || ("kind" in item && item.kind === "-");
+
+        if (isAdd) {
           bg = "rgba(34, 197, 94, 0.2)";
           color = "#4ADE80";
           prefix = "+ ";
-        } else if (item.type === "del") {
+        } else if (isDel) {
           bg = "rgba(239, 68, 68, 0.2)";
           color = "#F87171";
           prefix = "- ";
@@ -50,7 +52,7 @@ export const DiffCodeBlock: React.FC<DiffCodeBlockProps> = ({
               alignItems: "flex-start",
               backgroundColor: bg,
               borderRadius: 4,
-              padding: "2px 6px",
+              padding: "3px 8px",
               whiteSpace: "pre-wrap",
               wordBreak: "break-all",
             }}
@@ -58,14 +60,14 @@ export const DiffCodeBlock: React.FC<DiffCodeBlockProps> = ({
             <span
               style={{
                 userSelect: "none",
-                fontWeight: 700,
-                color: item.type === "add" ? "#22C55E" : item.type === "del" ? "#EF4444" : "var(--text-muted, #64748B)",
-                minWidth: 18,
+                fontWeight: 800,
+                color: isAdd ? "#22C55E" : isDel ? "#EF4444" : "var(--text-muted, #64748B)",
+                minWidth: 20,
               }}
             >
               {prefix}
             </span>
-            <span style={{ color, flex: 1, fontWeight: item.type === "normal" ? 400 : 600 }}>
+            <span style={{ color, flex: 1, fontWeight: isAdd || isDel ? 600 : 400 }}>
               {item.text}
             </span>
           </div>

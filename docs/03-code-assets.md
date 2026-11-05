@@ -1,99 +1,147 @@
-# 03 — Aset Data dan Kode (Modul 07)
+# 03 — Aset Data dan Kode (Modul 08: Kotlin Coroutines & Flow)
 
-Semua konstanta di bawah disimpan di `src/assets/code.ts`. Data JSON diambil dari endpoint asli `https://dummyjson.com/users?limit=10` (diverifikasi: `total` 208, `skip` 0, `limit` 10; user id 1 = Emily Johnson). Deck TIDAK memanggil endpoint itu saat berjalan.
+Semua konstanta di bawah disimpan di `src/assets/code.ts`. Seluruh aset kode disinkronkan persis dengan Modul Praktikum 08 (CIF62041, FILKOM UB 2026). Deck berjalan 100% offline tanpa dependensi atau pemanggilan jaringan langsung ke DummyJSON.
 
-## Kebersihan konten
-JSON asli DummyJSON memuat field sensitif palsu (`password`, `ssn`, `ein`, `bank.cardNumber`, `bank.iban`, `crypto.wallet`, `macAddress`, `ip`). **Jangan ditampilkan** di slide mana pun. Excerpt di bawah sudah memakai `…` sebagai pengganti.
+---
 
-## Bentuk TypeScript
+## 1. Kebersihan Konten
+
+Seluruh cuplikan kode dan data DummyJSON tidak memuat _field_ sensitif palsu (`password`, `ssn`, `ein`, `cardNumber`, `iban`, `wallet`, `macAddress`, `ip`). Semua pemodelan entitas konsisten menggunakan `Student(id, name, email, university)`.
+
+---
+
+## 2. Definisi Tipe TypeScript (`src/assets/code.ts`)
+
 ```ts
-export type Layer = 'ui' | 'vm' | 'repo' | 'rds' | 'api';   // rds = Remote Data Source
-export type DiffLine = { kind: ' ' | '+' | '-'; text: string };   // karakter pertama blok diff = kind
-export const JSON_FULL: string;       // Scene 2 Stop 2
-export const JSON_SHORT: { text: string; used: number[]; wrapper: number[] };  // Scene 4 (nomor baris mulai 1)
-export const RESPONSE_OBJECT: string; // Scene 2 Stop 3
-export const MAPPER_CODE: string;     // Scene 4 Stop 3
-export const EXECUTE_CODE: string;    // Scene 5 Stop 1
-export const ASYNC_CODE: string;      // Scene 5 Stop 2
-export const ENQUEUE_CODE: string;    // Scene 5 Stop 3-4
-export const VM_CODE: string;         // Scene 5 Stop 5
-export const WHEN_CODE: string;       // Scene 6
-export const STATE_STEPS: { students: string; isLoading: string; errorMessage: string; branch: 1|2|3|0 }[];
-export const PHONE_ROWS: string[];    // Scene 6 Stop 4
-export const ERRORS: { symptom: string; door: 'onFailure'|'onResponse'; gateFail?: boolean; focus?: 'rds'; fix: string }[];
+export type Layer = "ui" | "vm" | "repo" | "rds" | "api";
+export type DiffLine = { kind: " " | "+" | "-"; text: string };
+
+// Cuplikan Kode Utama
+export const COMPARE_CALLBACK: string; // Scene 1 / Scene 2 (Gambar 1 Modul 08)
+export const COMPARE_COROUTINE: string; // Scene 2 (Gambar 1 Modul 08)
+export const SERVICE_CODE: string; // Scene 2 (StudentApiService suspend fun)
+export const REMOTE_DS_CODE: string; // Scene 2 (StudentRemoteDataSource)
+export const REPO_CODE: string; // Scene 2 (DefaultStudentRepository)
+export const MAPPER_CODE: string; // Scene 2 (UserDto.toStudent)
+export const VM_LAUNCH_CODE: string; // Scene 3 (viewModelScope + CancellationException)
+export const STATEFLOW_CODE: string; // Scene 4 (MutableStateFlow & StateFlow)
+export const COMPOSE_COLLECT_CODE: string; // Scene 4 (collectAsStateWithLifecycle)
+export const OBSERVE_SEARCH_CODE: string; // Scene 5 (Flow Pipeline: debounce, distinct, collectLatest)
+export const RETRY_CODE: string; // Scene 5 (retry dengan searchQuery aktif)
+
+// Struktur Data Diagram Pipa Reaktif (Gambar 3 Modul 08)
+export interface FlowStep {
+  id: "A" | "B" | "C" | "D" | "E" | "F" | "G";
+  label: string;
+  sublabel: string;
+  color?: string;
+}
+export const SEARCH_FLOW_STEPS: FlowStep[];
+
+// Diff Panel per Lapisan (Scene 6)
 export const DIFFS: { layer: Layer; banner: string; lines: DiffLine[] }[];
+
+// Rangkuman Berubah vs Tetap (Scene 6)
+export const SUMMARY_ITEMS: { changed: string[]; unchanged: string[] };
 ```
 
-## JSON mentah (Scene 2 Stop 2, 16 baris, `JSON_FULL`)
-Ringkas: urutan field asli berbeda dan banyak field dihilangkan (diganti `…`).
-```json
-{
-  "users": [
-    {
-      "id": 1,
-      "firstName": "Emily",
-      "lastName": "Johnson",
-      "age": 29,
-      "email": "emily.johnson@x.dummyjson.com",
-      …
-      "university": "University of Wisconsin--Madison",
-      …
-    },
-    …
-  ],
-  "total": 208, "skip": 0, "limit": 10
+---
+
+## 3. Komparasi Callback vs Coroutine (Gambar 1 Modul 08)
+
+### `COMPARE_CALLBACK` (Modul 07, Callback Bersarang)
+
+```kotlin
+repository.getStudents { result ->
+    result.onSuccess { data ->
+        updateUi(data)
+    }.onFailure { error ->
+        showError(error)
+    }
 }
+
 ```
 
-## JSON ringkas untuk pemetaan (Scene 4, 14 baris, `JSON_SHORT`)
-Email dan university dipotong dengan `…` agar muat kolom 580px pada 24px.
-```json
-{
-  "users": [{
-    "id": 1,
-    "firstName": "Emily",
-    "lastName": "Johnson",
-    "age": 29,
-    "email": "emily.johnson@x.dummy…",
-    "phone": "+81 965-431-3024",
-    "university": "University of W…",
-    "address": { … },
-    …
-  }, …],
-  "total": 208, "skip": 0, "limit": 10
+### `COMPARE_COROUTINE` (Modul 08, Sekuensial Linear Non-Blocking)
+
+```kotlin
+viewModelScope.launch {
+    val data = repository.getStudents()
+    updateUi(data)
 }
-```
-- `used` (menyala di Stop 2): baris 3, 4, 5, 7, 9 (`id`, `firstName`, `lastName`, `email`, `university`).
-- Redup berlabel "tidak dipakai": baris 6, 8, 10 (`age`, `phone`, `address`).
-- `wrapper` (menyala di Stop 1): baris 2 (`users`) dan baris 13 (`total`, `skip`, `limit`).
 
-## Objek hasil Gson (Scene 2 Stop 3, `RESPONSE_OBJECT`)
-Tampilan ringkas (bukan kode yang dikompilasi):
-```
-UserResponse(
-  users = [
-    UserDto(id = 1, firstName = "Emily", lastName = "Johnson",
-            email = "emily.johnson@x.dummyjson.com",
-            university = "University of Wisconsin--Madison"),
-    …
-  ],
-  total = 208, skip = 0, limit = 10
-)
 ```
 
-## Kotak kelas (Scene 4, mono 26px, `data/remote/dto` dan `data/model`)
-```
-UserResponse(            UserDto(                Student(
-  users: List<UserDto>,    id: Int,                id: Int,
-  total: Int,              firstName: String,      name: String,
-  skip: Int,               lastName: String,       email: String,
-  limit: Int               email: String,          university: String
-)                          university: String    )
-                         )
-```
-Tiga kotak ditampilkan terpisah di kolomnya masing-masing (`UserResponse` dan `UserDto` di kolom tengah, `Student` di kolom kanan).
+---
 
-## Mapper (Scene 4 Stop 3, `MAPPER_CODE`, 6 baris)
+## 4. Kontrak Retrofit & Data Layer (Operasi One-Shot)
+
+### `SERVICE_CODE` (`data/remote/StudentApiService.kt`)
+
+Retrofit secara langsung mendukung fungsi `suspend`; `Call<T>` dan `enqueue` dihapus total.
+
+```kotlin
+interface StudentApiService {
+    @GET("users")
+    suspend fun getUsers(
+        @Query("limit") limit: Int = 10
+    ): UserResponse
+
+    @GET("users/{id}")
+    suspend fun getUser(
+        @Path("id") id: Int
+    ): UserDto
+
+    @GET("users/search")
+    suspend fun searchUsers(
+        @Query("q") query: String
+    ): UserResponse
+}
+
+```
+
+### `REMOTE_DS_CODE` (`data/remote/StudentRemoteDataSource.kt`)
+
+Tidak memerlukan pembungkus `withContext(Dispatchers.IO)` karena Retrofit mengeksekusi request secara asinkron di balik layar.
+
+```kotlin
+class StudentRemoteDataSource(
+    private val api: StudentApiService
+) {
+    suspend fun getStudents(): List<UserDto> =
+        api.getUsers(limit = 10).users
+
+    suspend fun getStudent(id: Int): UserDto =
+        api.getUser(id)
+
+    suspend fun searchStudents(query: String): List<UserDto> =
+        api.searchUsers(query).users
+}
+
+```
+
+### `REPO_CODE` (`data/repository/DefaultStudentRepository.kt`)
+
+Repository bertugas mengeksekusi fungsi `suspend` sekaligus memetakan DTO ke entitas domain `Student`.
+
+```kotlin
+class DefaultStudentRepository(
+    private val remoteDataSource: StudentRemoteDataSource
+) : StudentRepository {
+    override suspend fun getStudents(): List<Student> =
+        remoteDataSource.getStudents().map { it.toStudent() }
+
+    override suspend fun getStudent(id: Int): Student =
+        remoteDataSource.getStudent(id).toStudent()
+
+    override suspend fun searchStudents(query: String): List<Student> =
+        remoteDataSource.searchStudents(query).map { it.toStudent() }
+}
+
+```
+
+### `MAPPER_CODE` (`data/mapper/StudentMapper.kt`)
+
 ```kotlin
 fun UserDto.toStudent() = Student(
     id = id,
@@ -101,165 +149,273 @@ fun UserDto.toStudent() = Student(
     email = email,
     university = university
 )
+
 ```
 
-## Kode Scene 5 (panel bawah, mono 26px / 1.3)
-Parameter `onResponse`/`onFailure` disingkat (`call, response`) agar muat; tipenya ada di modul.
+---
 
-`EXECUTE_CODE` (Stop 1, label SALAH):
-```kotlin
-// SALAH: menunggu balasan di jalur utama
-val response = api.getUsers().execute()
-uiState = HomeUiState(students = response.body()!!.users)
-```
+## 5. Presentation Layer & Structured Concurrency
 
-`ASYNC_CODE` (Stop 2):
-```kotlin
-uiState = uiState.copy(isLoading = true, errorMessage = null)
-repository.getStudents { result ->   // dipanggil NANTI, saat hasil siap
-    …
-}
-```
+### `VM_LAUNCH_CODE` (`ui/home/HomeViewModel.kt` — Muat Awal & Error Handling)
 
-`ENQUEUE_CODE` (Stop 3–4, 13 baris). Baris kunci: Stop 3 = [2, 10]; Stop 4 = [4, 5, 7]:
+Penanganan error kembali menggunakan blok idiomatis Kotlin `try-catch`, dengan kewajiban melempar ulang `CancellationException`.
+
 ```kotlin
-api.getUsers().enqueue(object : Callback<UserResponse> {
-    override fun onResponse(call, response) {
-        val body = response.body()
-        if (response.isSuccessful && body != null) {
-            callback(Result.success(body.users))
-        } else {
-            callback(Result.failure(Exception("HTTP ${response.code()}")))
+fun loadStudents() {
+    viewModelScope.launch {
+        _uiState.value = HomeUiState(isLoading = true)
+        try {
+            val students = repository.getStudents()
+            _uiState.value = HomeUiState(students = students)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            _uiState.value = HomeUiState(
+                errorMessage = e.message ?: "Gagal mengambil data"
+            )
         }
     }
-    override fun onFailure(call, t) {
-        callback(Result.failure(t))
-    }
-})
+}
+
 ```
 
-`VM_CODE` (Stop 5, 7 baris, baris kunci [3, 5]):
+### `STATEFLOW_CODE` (`ui/home/HomeViewModel.kt` — State Holder)
+
+Pemisahan hak akses: `MutableStateFlow` disimpan privat di ViewModel, diekspos sebagai `StateFlow` _read-only_ ke UI.
+
 ```kotlin
-repository.getStudents { result ->
-    result
-        .onSuccess { data -> uiState = HomeUiState(students = data) }
-        .onFailure { error ->
-            uiState = HomeUiState(errorMessage = error.message ?: "Gagal mengambil data")
+class HomeViewModel(
+    private val repository: StudentRepository
+) : ViewModel() {
+    private val _uiState = MutableStateFlow(HomeUiState())
+    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    fun onSearchQueryChange(query: String) {
+        _searchQuery.value = query
+    }
+}
+
+```
+
+### `OBSERVE_SEARCH_CODE` (`ui/home/HomeViewModel.kt` — Pipa Pencarian Reaktif)
+
+Pipeline operator Flow: `debounce(500)` menahan request beruntun, `distinctUntilChanged()` menyaring query identik, dan `collectLatest` membatalkan request lama yang masih berjalan saat query baru tiba.
+
+```kotlin
+@OptIn(FlowPreview::class)
+private fun observeSearch() {
+    viewModelScope.launch {
+        searchQuery
+            .debounce(500)
+            .distinctUntilChanged()
+            .collectLatest { query ->
+                _uiState.value = _uiState.value.copy(
+                    isLoading = true,
+                    errorMessage = null
+                )
+                try {
+                    val data = if (query.isBlank()) {
+                        repository.getStudents()
+                    } else {
+                        repository.searchStudents(query)
+                    }
+                    _uiState.value = HomeUiState(students = data)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    _uiState.value = HomeUiState(
+                        errorMessage = e.message ?: "Pencarian gagal"
+                    )
+                }
+            }
+    }
+}
+
+```
+
+### `RETRY_CODE` (`ui/home/HomeViewModel.kt` — Retry Reaktif)
+
+```kotlin
+fun retry() {
+    val query = searchQuery.value
+    viewModelScope.launch {
+        _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+        try {
+            val data = if (query.isBlank()) {
+                repository.getStudents()
+            } else {
+                repository.searchStudents(query)
+            }
+            _uiState.value = HomeUiState(students = data)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            _uiState.value = HomeUiState(errorMessage = e.message ?: "Request gagal")
         }
+    }
 }
+
 ```
 
-## Scene 6
-`WHEN_CODE` (12 baris). Cabang 1 = baris 2–4, cabang 2 = baris 5–8, cabang 3 = baris 9–11:
+---
+
+## 6. UI Layer (`Jetpack Compose`)
+
+### `COMPOSE_COLLECT_CODE` (`ui/home/HomeScreen.kt` Destination Host)
+
+State dikoleksi secara _lifecycle-aware_ menggunakan `collectAsStateWithLifecycle()`, berhenti mengonsumsi sumber daya saat aplikasi berada di latar belakang.
+
 ```kotlin
-when {
-    uiState.isLoading -> {
-        CircularProgressIndicator()
-    }
-    uiState.errorMessage != null -> {
-        Text(uiState.errorMessage)
-        Button(onClick = onRetry) { Text("Coba Lagi") }
-    }
-    else -> {
-        LazyColumn { items(uiState.students) { … } }
-    }
-}
+val homeUiState by homeViewModel.uiState.collectAsStateWithLifecycle()
+val searchQuery by homeViewModel.searchQuery.collectAsStateWithLifecycle()
+
+HomeScreen(
+    uiState = homeUiState,
+    searchQuery = searchQuery,
+    onSearchQueryChange = homeViewModel::onSearchQueryChange,
+    onStudentClick = { id -> navController.navigate(Routes.detail(id)) },
+    onRetry = homeViewModel::retry
+)
+
 ```
 
-`STATE_STEPS` (panel state, mono 28px; `branch` = cabang yang disorot):
-| Stop | students | isLoading | errorMessage | branch |
-|---|---|---|---|---|
-| 0 | `[]` | `false` | `null` | 0 |
-| 1 | `[]` | `true` | `null` | 1 |
-| 2 | `[]` | `false` | `"Unable to resolve host…"` | 2 |
-| 3 | `[]` | `true` | `null` | 1 |
-| 4 | `[10 item]` | `false` | `null` | 3 |
+---
 
-`PHONE_ROWS` (Stop 4, tampil format `"${id} - ${name}"`): `1 - Emily Johnson`, `2 - Michael Williams`, `3 - Sophia Brown`, `4 - James Davis`, `5 - Emma Miller`, `6 - Olivia Wilson`, `7 - Alexander Jones`, `8 - Ava Taylor` (dua baris terakhir terpotong layar).
+## 7. Diagram Aliran Pipa Pencarian Reaktif (Gambar 3 Modul 08)
 
-Mockup ponsel: bar atas bertuliskan "Home"; layar error menampilkan teks `Unable to resolve host…` (warna `--err`) dan tombol "Coba Lagi".
+`SEARCH_FLOW_STEPS` digunakan untuk merepresentasikan node operator Flow pada Scene 5:
 
-## Scene 7 (`ERRORS`)
-| symptom | door | detail | fix |
-|---|---|---|---|
-| `UnknownHostException` | onFailure | jaringan atau izin | Cek koneksi internet dan permission INTERNET |
-| `HTTP 404` | onResponse | gerbang `isSuccessful = false` | Cek base URL, path @GET, @Path, dan ID |
-| `Expected BEGIN_OBJECT…` | onFailure | sorot kotak Remote DS (Gson/DTO) | Samakan DTO dengan struktur JSON |
-| `Cleartext HTTP traffic not permitted` | onFailure | gunakan HTTPS | Gunakan endpoint HTTPS |
+```ts
+export const SEARCH_FLOW_STEPS: FlowStep[] = [
+  { id: "A", label: '"j"', sublabel: "Karakter ke-1" },
+  { id: "B", label: '"jo"', sublabel: "Karakter ke-2" },
+  { id: "C", label: '"john"', sublabel: "Karakter ke-4" },
+  { id: "D", label: "debounce", sublabel: "Tahan 500 ms jeda ketik" },
+  {
+    id: "E",
+    label: "collectLatest",
+    sublabel: "Batalkan pekerjaan sebelumnya",
+  },
+  { id: "F", label: "searchStudents()", sublabel: "Panggil suspend service" },
+  { id: "G", label: "HomeUiState", sublabel: "Perbarui UI Compose" },
+];
+```
 
-Catatan akurasi: kegagalan konversi Gson dan kesalahan koneksi diteruskan Retrofit ke `onFailure`; kode status non-2xx tetap masuk `onResponse`. Verifikasi di Logcat bila ragu.
+Keterangan visual: _"Jika pengguna terus mengetik, collectLatest membatalkan pekerjaan sebelumnya dan hanya memproses query terbaru."_
 
-## Scene 3 (caption di dalam kotak, mono 26px)
-| Kotak | Stop 1 (event) | Stop 2 (wujud data) |
-|---|---|---|
-| UI | klik / buka layar | dirender |
-| ViewModel | `loadStudents()` | `HomeUiState` |
-| Repository | `getStudents(callback)` | `Result<List<Student>>` |
-| Remote Data Source | `api.getUsers().enqueue(…)` | `Result<List<UserDto>>` |
-| REST API | `GET /users?limit=10` | JSON (teks) |
+---
 
-Sub-label tetap: Remote Data Source = `StudentApiService · RetrofitClient`; REST API = "DummyJSON (di luar aplikasi)".
+## 8. Diff Refactoring per Lapisan (`DIFFS`)
 
-## Scene 8
-`DIFFS` (setiap `lines` maksimum 14 baris; karakter pertama = kind; baris kosong konteks = satu spasi).
+### `DIFFS[0]` — Remote Data Source (`rds`)
 
-Banner dan lapisan: [0] rds "Data Source → Remote Data Source" · [1] repo "Repository: kontrak jadi asinkron + memetakan DTO" · [2] vm "ViewModel: ikut asinkron, mengelola loading dan error" · [3] ui "UI: tidak mengenal Retrofit, hanya render state".
-
-`DIFFS[0]`
 ```diff
--class StudentLocalDataSource {
--    private val students = listOf(…)
--    fun getStudentById(id: Int): Student? =
--        students.find { it.id == id }
-+class StudentRemoteDataSource(
-+    private val api: StudentApiService
-+) {
-+    fun getStudents(callback: (Result<List<UserDto>>) -> Unit) {
-+        api.getUsers().enqueue(/* onResponse, onFailure */)
-+    }
+ interface StudentApiService {
+     @GET("users")
+-    fun getUsers(@Query("limit") limit: Int): Call<UserResponse>
++    suspend fun getUsers(@Query("limit") limit: Int = 10): UserResponse
  }
+-class StudentRemoteDataSource(private val api: StudentApiService) {
+-    fun getStudents(callback: (Result<List<UserDto>>) -> Unit) {
+-        api.getUsers(10).enqueue(object : Callback<UserResponse> { ... })
+-    }
+-}
++class StudentRemoteDataSource(private val api: StudentApiService) {
++    suspend fun getStudents(): List<UserDto> =
++        api.getUsers(limit = 10).users
++}
+
 ```
-`DIFFS[1]`
+
+### `DIFFS[1]` — Repository (`repo`)
+
 ```diff
  interface StudentRepository {
--    fun getStudentById(id: Int): Student?
-+    fun getStudents(callback: (Result<List<Student>>) -> Unit)
-+    fun getStudent(id: Int, callback: (Result<Student>) -> Unit)
+-    fun getStudents(callback: (Result<List<Student>>) -> Unit)
++    suspend fun getStudents(): List<Student>
  }
- // DefaultStudentRepository: memanggil Remote DS lalu it.toStudent()
+ class DefaultStudentRepository(...) : StudentRepository {
+-    override fun getStudents(callback: (Result<List<Student>>) -> Unit) {
+-        remoteDataSource.getStudents { result -> ... }
+-    }
++    override suspend fun getStudents(): List<Student> =
++        remoteDataSource.getStudents().map { it.toStudent() }
+ }
+
 ```
-`DIFFS[2]`
+
+### `DIFFS[2]` — ViewModel (`vm`)
+
 ```diff
- fun loadStudent(id: Int) {
--    val student = repository.getStudentById(id)
--    uiState = if (student != null) DetailUiState(student = student)
--    else DetailUiState(errorMessage = "Student tidak ditemukan")
-+    uiState = uiState.copy(isLoading = true, errorMessage = null)
-+    repository.getStudent(id) { result ->
-+        result
-+            .onSuccess { student -> uiState = DetailUiState(student = student) }
-+            .onFailure { error ->
-+                uiState = DetailUiState(errorMessage = error.message ?: "Data tidak tersedia")
-+            }
+-private var _uiState = mutableStateOf(HomeUiState())
+-val uiState: State<HomeUiState> = _uiState
++private val _uiState = MutableStateFlow(HomeUiState())
++val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+ fun loadStudents() {
+-    repository.getStudents { result ->
+-        result.onSuccess { ... }.onFailure { ... }
+-    }
++    viewModelScope.launch {
++        try {
++            _uiState.value = HomeUiState(students = repository.getStudents())
++        } catch (e: CancellationException) {
++            throw e
++        } catch (e: Exception) {
++            _uiState.value = HomeUiState(errorMessage = e.message)
++        }
 +    }
  }
+
 ```
-`DIFFS[3]`
+
+### `DIFFS[3]` — Composable UI (`ui`)
+
 ```diff
- uiState.student != null -> {
-     Text("Nama: ${uiState.student.name}")
--    Text("Program: ${uiState.student.program}")
--    Text("Angkatan: ${uiState.student.year}")
-+    Text("Email: ${uiState.student.email}")
-+    Text("University: ${uiState.student.university}")
- }
- // tidak ada import retrofit2 / StudentApiService
+-val uiState = homeViewModel.uiState.value
++val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
++val searchQuery by homeViewModel.searchQuery.collectAsStateWithLifecycle()
+
+ OutlinedTextField(
+     value = searchQuery,
+-    onValueChange = { ... }
++    onValueChange = homeViewModel::onSearchQueryChange,
+ )
+-// Tombol manual "Cari" dihapus; pencarian berjalan reaktif via Flow
+
 ```
 
-Panel ringkasan Stop 5 (dua kolom, 42px):
-- **Berubah:** Data Source → Remote (Retrofit) · Repository → callback + mapper · ViewModel → loading dan error · Student → email dan university · UI → render 3 kondisi
-- **Tetap:** Arah dependency UI → ViewModel → Repository · UI tidak mengenal Retrofit · Navigasi Home → Detail → Back · Profile dan About
-- Baris bawah: **"Berikutnya: callback → Kotlin Coroutines & Flow"** (label saja).
+---
 
-## Wujud data (benang merah)
-`JSON (teks)` → `UserDto` → `Student` → `HomeUiState` → piksel di layar. Dipakai di Scene 3 Stop 2 sebagai caption, dan diulang di Scene 8 bila diperlukan.
+## 9. Rangkuman Berubah vs Tetap (`SUMMARY_ITEMS`)
+
+- **Berubah (Modul 08)**:
+- Retrofit Service: `Call<T>` dan `enqueue` $\rightarrow$ `suspend fun`.
+
+- Remote Data Source & Repository: Pemanggilan berbasis callback $\rightarrow$ Fungsi murni `suspend`.
+
+- Kontrol Asinkron ViewModel: Lambda callback bersarang $\rightarrow$ `viewModelScope.launch` dengan gaya sekuensial linear.
+
+- Penanganan Error: Pembungkus `Result<T>` $\rightarrow$ Blok alami `try-catch` + re-throw `CancellationException`.
+
+- State Holder: `mutableStateOf` $\rightarrow$ `MutableStateFlow` (private) & `StateFlow` (public).
+
+- Konsumsi Antarmuka: Pembacaan state biasa $\rightarrow$ `collectAsStateWithLifecycle()` di Compose.
+
+- Fitur Pencarian: Tombol cari manual $\rightarrow$ Aliran reaktif otomatis (`debounce`, `distinctUntilChanged`, `collectLatest`).
+
+- **Tetap (Konsisten dari Modul 06 & 07)**:
+- Lapisan Arsitektur: `UI → ViewModel → Repository → Remote Data Source → REST API`.
+
+- Pemisahan Peran: UI tetap tidak mengimpor Retrofit atau menjalankan _business logic_.
+
+- Kontrak Model Domain: `Student(id, name, email, university)` dan DTO `UserDto`/`UserResponse`.
+
+- Navigasi & Back Stack: Alur `Home → Detail → Back` tetap utuh.
+
+- Jembatan ke Depan: **"Berikutnya: Penyimpanan Lokal dengan Room Database & DataStore"** (Modul 09).
+
+---

@@ -1,205 +1,224 @@
-# 02 — Storyboard Modul 07
+# 02 — Storyboard Modul 08: Kotlin Coroutines & Flow
 
-## Aturan umum
-- `Stop 0` = kondisi awal scene (transisi masuk `sceneIn`, kecuali Scene 1). `Stop N` = kondisi setelah N kali Next di dalam scene.
-- **Frames** = durasi transisi (30 fps) MENUJU stop itu. Angka sebenarnya ada di `src/deck/stops.ts`; tabel ini harus identik.
-- **Narasi** adalah naskah lisan dosen, TIDAK ditampilkan di layar.
-- Semua scene berlatar terang (`--bg-light`); panel kode berlatar gelap (`--editor-bg`).
-- Grid 5 slot: lebar slot 320px, jarak 40px (5×320 + 4×40 = 1760, zona aman 80px). Urutan lapisan kiri→kanan: UI, ViewModel, Repository, Remote Data Source, REST API.
-- Nama efek didefinisikan di `05-animation-delta.md` dan `docs-modul06/05-animation-spec.md`.
-- Spesifikasi data (JSON, kode, teks panel) ada di `03-code-assets.md`.
+## Aturan Umum
 
-## Peta state global (39 state, 38 kali Next)
-| # | Scene.Stop | Frames | Frame akhir (settled) |
-|---|---|---|---|
-| 0 | 1.0 | 0 | 0 |
-| 1 | 1.1 | 30 | 30 |
-| 2 | 2.0 | 18 | 48 |
-| 3 | 2.1 | 36 | 84 |
-| 4 | 2.2 | 36 | 120 |
-| 5 | 2.3 | 36 | 156 |
-| 6 | 2.4 | 36 | 192 |
-| 7 | 3.0 | 24 | 216 |
-| 8 | 3.1 | 60 | 276 |
-| 9 | 3.2 | 60 | 336 |
-| 10 | 3.3 | 30 | 366 |
-| 11 | 3.4 | 30 | 396 |
-| 12 | 4.0 | 24 | 420 |
-| 13 | 4.1 | 30 | 450 |
-| 14 | 4.2 | 30 | 480 |
-| 15 | 4.3 | 36 | 516 |
-| 16 | 4.4 | 30 | 546 |
-| 17 | 5.0 | 24 | 570 |
-| 18 | 5.1 | 36 | 606 |
-| 19 | 5.2 | 36 | 642 |
-| 20 | 5.3 | 36 | 678 |
-| 21 | 5.4 | 36 | 714 |
-| 22 | 5.5 | 36 | 750 |
-| 23 | 6.0 | 24 | 774 |
-| 24 | 6.1 | 30 | 804 |
-| 25 | 6.2 | 30 | 834 |
-| 26 | 6.3 | 24 | 858 |
-| 27 | 6.4 | 30 | 888 |
-| 28 | 7.0 | 24 | 912 |
-| 29 | 7.1 | 30 | 942 |
-| 30 | 7.2 | 30 | 972 |
-| 31 | 7.3 | 30 | 1002 |
-| 32 | 7.4 | 30 | 1032 |
-| 33 | 8.0 | 24 | 1056 |
-| 34 | 8.1 | 30 | 1086 |
-| 35 | 8.2 | 30 | 1116 |
-| 36 | 8.3 | 30 | 1146 |
-| 37 | 8.4 | 30 | 1176 |
-| 38 | 8.5 | 30 | 1206 |
-
-Total frame = 1206 (durasi komposisi = 1207). Tidak ada stop ber-frame 0 selain state pertama.
+- `Stop 0` = kondisi awal scene (transisi masuk `sceneIn`, kecuali Scene 1 Stop 0)[cite: 26]. `Stop N` = kondisi setelah $N$ kali Next di dalam scene[cite: 26].
+- **Frames** = durasi transisi (30 FPS) MENUJU stop tersebut[cite: 26]. Angka sebenarnya didefinisikan di `src/deck/stops.ts`; tabel ini harus identik[cite: 26].
+- **Narasi** adalah naskah lisan dosen dan **TIDAK ditampilkan di layar**[cite: 24, 26].
+- Semua scene berlatar terang (`--bg-light`), kecuali panel kode dan diagram editor yang menggunakan latar gelap (`--editor-bg` / Dracula)[cite: 26, 28, 30].
+- Grid 5 slot arsitektur: lebar slot 320px, jarak antar slot 40px ($5 \times 320 + 4 \times 40 = 1760\text{px}$, zona aman 80px di kedua sisi)[cite: 26, 28, 30]. Urutan lapisan kiri ke kanan: `UI (Compose)` $\rightarrow$ `ViewModel` $\rightarrow$ `Repository` $\rightarrow$ `Remote Data Source` $\rightarrow$ `REST API`[cite: 13, 26].
+- Spesifikasi aset kode, teks panel, dan tipe data merujuk penuh pada `docs/03-code-assets.md`[cite: 26].
 
 ---
 
-## Scene 1 — Rekap: dari In-Memory ke REST (pendukung)
-**Tujuan:** menyambungkan Modul 06 ke Modul 07 dan menanam pertanyaan: apa yang berubah, apa yang tetap?
+## Peta State Global (31 State, 30 Kali Next, Durasi 901 Frame)
 
-| Stop | Aksi | Yang tampil | Frames |
-|---|---|---|---|
-| 0 | n/a | Judul "Modul 07: Data dari Internet". Empat kotak slot 1–4: UI (biru), ViewModel (oranye), Repository (hijau), Data Source (navy, sublabel "in-memory list"). Slot 5 kosong. Teks bawah: "Modul 06: semua data berasal dari dalam aplikasi" | 0 |
-| 1 | `boxSwap` + `slideIn` | Kotak Data Source berganti menjadi **Remote Data Source** (sublabel `StudentRemoteDataSource`). Kotak ke-5 **REST API** (slate, sublabel "DummyJSON") masuk dari kanan. Garis putus-putus vertikal antara slot 4 dan 5 berlabel "batas aplikasi". Teks bawah: "Apa yang berubah? Apa yang tetap?" | 30 |
+| #   | Scene.Stop | Frames | Frame Akhir (_Settled_) | Topik Bahasan                                                                               |
+| --- | ---------- | ------ | ----------------------- | ------------------------------------------------------------------------------------------- |
+| 0   | 1.0        | 0      | 0                       | Aturan Emas Main Thread & Analogi Kasir/Buzzer[cite: 11, 26]                                |
+| 1   | 1.1        | 30     | 30                      | Titik Jenuh 1: _Inverted Control Flow_ (Pembalikan Alur Pikir)[cite: 11]                    |
+| 2   | 1.2        | 30     | 60                      | Titik Jenuh 2: _Pyramid of Doom_ (Kaskade Callback Bersarang)[cite: 11]                     |
+| 3   | 1.3        | 30     | 90                      | Titik Jenuh 3: _Lifecycle Blindness_ & Risiko Kebocoran Memori[cite: 11]                    |
+| 4   | 2.0        | 24     | 114                     | Komparasi Berdampingan: Callback vs Coroutine (Gambar 1 Modul 08)[cite: 11]                 |
+| 5   | 2.1        | 36     | 150                     | Analogi Pembatas Buku (_Bookmark_): Penangguhan Eksekusi `suspend`[cite: 11]                |
+| 6   | 2.2        | 36     | 186                     | Data Siap: Pembatas Buku Diangkat, Main Thread Melanjutkan Alur Linear[cite: 11]            |
+| 7   | 2.3        | 30     | 216                     | Kembalinya Blok Alami `try-catch` Menggantikan `Result<T>`[cite: 11, 15]                    |
+| 8   | 2.4        | 24     | 240                     | Penegasan _Main-Safety_: Retrofit Suspend Tanpa `Dispatchers.IO` Manual[cite: 14]           |
+| 9   | 3.0        | 24     | 264                     | Fondasi _Structured Concurrency_: Hirarki Induk-Anak di `viewModelScope`[cite: 11, 16]      |
+| 10  | 3.1        | 30     | 294                     | Peluncuran Pekerjaan: `viewModelScope.launch` Mengikat Pekerjaan Asinkron[cite: 11, 15]     |
+| 11  | 3.2        | 30     | 324                     | Layar Ditutup: Pembersihan Otomatis Tanpa _Memory Leak_[cite: 11, 16]                       |
+| 12  | 3.3        | 36     | 360                     | Bahaya Menelan Exception: Blok `catch (e: Exception)` Tanpa Re-throw[cite: 15, 21]          |
+| 13  | 3.4        | 30     | 390                     | Aturan Mutlak Modul 08: `catch (e: CancellationException) { throw e }`[cite: 15, 21]        |
+| 14  | 4.0        | 24     | 414                     | Evolusi Penampung State: Keterbatasan `mutableStateOf` Modul 07[cite: 10, 15]               |
+| 15  | 4.1        | 30     | 444                     | Enkapsulasi: `_uiState` (Mutable privat) vs `uiState` (StateFlow publik)[cite: 11, 15]      |
+| 16  | 4.2        | 30     | 474                     | Larangan Akses Langsung: Mengapa `.value` Berbahaya di Composable UI[cite: 11, 16]          |
+| 17  | 4.3        | 36     | 510                     | Koleksi Sadar Siklus Hidup: `collectAsStateWithLifecycle()` Aktif di Layar[cite: 11, 16]    |
+| 18  | 4.4        | 30     | 540                     | Otomasi Hemat Daya: Aliran Terhenti Saat Aplikasi Masuk Latar Belakang[cite: 11, 16]        |
+| 19  | 5.0        | 24     | 564                     | Kebutuhan Transaksi Data: _One-Shot_ (`suspend`) vs _Stream_ Reaktif (`Flow`)[cite: 11, 17] |
+| 20  | 5.1        | 30     | 594                     | Aliran Teks Masuk: StateFlow Query Menerima Karakter "j", "jo", "john"[cite: 17, 18]        |
+| 21  | 5.2        | 36     | 630                     | Operator `debounce(500)`: Menahan Eksekusi Sebelum Pengguna Berhenti Ketik[cite: 17, 18]    |
+| 22  | 5.3        | 30     | 660                     | Operator `distinctUntilChanged()`: Menyaring Input Teks yang Tidak Berubah[cite: 17, 18]    |
+| 23  | 5.4        | 36     | 696                     | Operator `collectLatest`: Membatalkan Request Lama Saat Query Baru Tiba[cite: 11, 17, 18]   |
+| 24  | 5.5        | 30     | 726                     | Eksekusi Pencarian Reaktif: Data REST API Menghasilkan State Terbaru[cite: 17, 18]          |
+| 25  | 6.0        | 24     | 750                     | Peta Refactoring 5 Lapisan Arsitektur Modul 08[cite: 13, 20]                                |
+| 26  | 6.1        | 30     | 780                     | Diff Lapisan Data: Service & Remote Data Source Murni `suspend`[cite: 14, 20]               |
+| 27  | 6.2        | 30     | 810                     | Diff Lapisan Domain: Repository Mengekspos Model `Student` Linear[cite: 15, 20]             |
+| 28  | 6.3        | 30     | 840                     | Diff Lapisan Presentasi: ViewModel Mengelola StateFlow & Launch Scope[cite: 15, 20]         |
+| 29  | 6.4        | 30     | 870                     | Diff Lapisan UI: Compose Mengoleksi State Reaktif Tanpa Tombol Cari[cite: 16, 18, 20]       |
+| 30  | 6.5        | 30     | 900                     | Rangkuman Final & Jembatan ke Modul 09 (Room Database & DataStore)[cite: 20, 21]            |
 
-**Narasi:**
-- Stop 0: "Di Modul 06 semua data hidup di dalam aplikasi, dan kita sudah memisahkan empat layer."
-- Stop 1: "Hari ini sumber datanya pindah ke internet. Di Modul 06 kita berjanji: saat sumber data diganti, UI tidak perlu tahu. Mari kita buktikan, lapis demi lapis."
+Total frame = 900 frame transisi ($900 + 1 = 901$ frame durasi komposisi Remotion pada 30 FPS)[cite: 26, 29].
 
-## Scene 2 — Siklus Request–Response
-**Tujuan:** menunjukkan perjalanan satu permintaan data dan perubahan wujudnya: teks → objek → tampilan.
+---
 
-**Layout:** rel 5 stasiun di atas (y=80, tiap stasiun 320px: ikon 96px, nomor, nama Inter Bold 44, subjudul Inter 30). Panggung muatan di bawah (x=80, y=340, 1760×630) menampilkan "apa yang sedang berjalan". Token kecil berpindah antar stasiun.
-Stasiun: ① **App** (`Smartphone`, "memanggil endpoint") · ② **HTTP GET** (chip method, "/users?limit=10") · ③ **Server** (`Cloud`, "mengirim JSON") · ④ **Converter** (`Cog`, "JSON → object") · ⑤ **UI State** (`Smartphone`, "ditampilkan di Compose").
+## Scene 1 — Titik Jenuh Callback (Pain Points Modul 07)
 
-| Stop | Aksi | Yang tampil | Frames |
-|---|---|---|---|
-| 0 | `sceneIn` | Rel dengan ① aktif, lainnya redup. Panggung: teks "Aplikasi ingin menampilkan daftar mahasiswa. Datanya ada di server, bukan di dalam aplikasi." | 18 |
-| 1 | `railStep` ①→③ + `packetFly` | Token bergerak ① → ② → ③. Panggung: paket permintaan besar `GET /users?limit=10`, badge `HTTP GET`, baris `https://dummyjson.com` | 36 |
-| 2 | `railStep` (tetap di ③) + `jsonReveal` | Panggung: blok JSON mentah (16 baris, `03`) muncul linear; chip `200 OK` (`--ok`). Teks bawah: "Status code + body JSON harus dicek: sukses maupun gagal" | 36 |
-| 3 | `shrinkIntoMachine` | Token ke ④. Blok JSON mengecil dan masuk ke ikon `Cog` (berputar mengikuti progres). Di kanan muncul objek `UserResponse(...)` (`03`) | 36 |
-| 4 | `railStep` ⑤ + `phoneState` | Token ke ⑤. Panggung: mockup ponsel menampilkan kartu profil (Emily Johnson, email, university). Teks samping: "Sebelum tampil, DTO dipetakan menjadi Student (Scene 4)" | 36 |
+**Tujuan**: Mengingatkan kembali aturan mutlak Android Main Thread lalu membongkar 3 kerapuhan mendasar arsitektur callback Modul 07 sebelum mengenalkan coroutine[cite: 11, 26].
 
-**Narasi:**
-- Stop 0: "Aplikasi butuh data, tetapi datanya ada di server. Bagaimana perjalanannya?"
-- Stop 1: "Aplikasi mengirim HTTP GET ke endpoint `/users`, dengan parameter `limit` 10."
-- Stop 2: "Server membalas dengan teks JSON mentah dan status code. Ini hanya teks, belum objek Kotlin. Status code dan body sama-sama harus dicek."
-- Stop 3: "Converter Gson membaca teks itu dan membentuk objek Kotlin: `UserResponse` berisi daftar `UserDto`."
-- Stop 4: "Objek itu diteruskan sampai menjadi UI State, lalu dirender Compose sebagai kartu profil."
+**Layout**:
 
-## Scene 3 — Aliran Data Lintas Layer
-**Tujuan:** aturan pemisahan tanggung jawab dan larangan jalan pintas. Menunjukkan perubahan wujud data di tiap layer.
+- Judul scene di atas ($y = 80\text{px}$)[cite: 26, 30].
+- Area kiri ($x = 80\text{px}$, lebar 860px): Diagram ilustrasi jalur waktu Main Thread vs Background Thread (analogi kasir restoran dan buzzer antrean)[cite: 26].
+- Area kanan ($x = 980\text{px}$, lebar 860px): Panel kode Dracula menampilkan cuplikan callback Modul 07 dengan kartu peringatan masalah[cite: 26, 30].
 
-**Layout:** judul di atas (y=80). 5 kotak lapisan (320×220, y=330–550) memakai warna lapisan; REST API berwarna slate dengan garis tepi putus-putus dan caption "di luar aplikasi". Kotak Remote Data Source memuat sub-label `StudentApiService · RetrofitClient`. Di dalam tiap kotak: nama (Inter Bold 44) + caption mono 26 (berganti tiap stop). Panah event di atas kotak (y=290), panah response di bawah kotak (y=590). Teks aturan di bawah (y=700+, 42px).
+| Stop | Aksi                          | Yang Tampil di Layar                                                                                                                                                                                                                                                                                                                                                                                                                       | Frames |
+| ---- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| 0    | n/a                           | Judul "Aturan Emas: Main Thread Hanya untuk UI". Diagram kasir: kasir melayani antrean tanpa memasak ayam; memberikan _buzzer_ antrean (token penyeranta). Panel kanan: cuplikan kode `api.getUsers().enqueue(...)`[cite: 11, 26, 27]. Teks bawah: "Modul 07: Callback melepas beban jaringan ke background thread agar UI tidak mengalami ANR."[cite: 11, 26]                                                                             | 0      |
+| 1    | `focusGrow` + `callout`       | Diagram kasir meredup. Panel kode menampilkan sorotan pada kurung kurawal `onResponse { ... }`[cite: 27]. Panah melengkung zigzag merah menunjuk lompatan alur eksekusi. Kartu masalah 1 muncul: **"Pembalikan Alur Pikir (Inverted Control Flow)"** — kode tidak dieksekusi secara linear; logika melompat ke dalam kurung kurawal saat respon tiba[cite: 11].                                                                            | 30     |
+| 2    | `codePanel` swap + `popIn`    | Panel kanan berganti menampilkan piramida kode bersarang 3 tingkat: `getUserId { user -> getProfile(user) { profile -> getPosts(...) { ... } } }`. Indentasi kode menjorok ekstrem ke kanan. Kartu masalah 2 muncul: **"Kaskade Bersarang (Pyramid of Doom)"** — alur berantai membuat pemeliharaan kode menjadi sangat rapuh[cite: 11].                                                                                                   | 30     |
+| 3    | `phoneState` + `arcForbidden` | Mockup ponsel muncul di kiri menampilkan transisi layar ditutup (tombol Back ditekan)[cite: 26, 29]. Garis putus-putus merah dari background thread berusaha mengirim data ke layar yang sudah hancur. Tanda silang merah besar (`--err`) muncul. Kartu masalah 3: **"Kebutaan Daur Hidup (Lifecycle Blindness)"** — callback tidak peduli apakah layar masih hidup, memicu kebocoran memori (_memory leak_) atau crash[cite: 11, 26, 29]. | 30     |
 
-| Stop | Aksi | Yang tampil | Frames |
-|---|---|---|---|
-| 0 | `sceneIn` | Judul "Aliran Data Lintas Layer", 5 kotak, konektor tipis antar kotak. Caption kosong | 24 |
-| 1 | `flowArrow` (event) + `pulse` | Panah `--arrow-event` dari UI ke REST API, label "Event / Request". Caption berurutan: UI "klik / buka layar", ViewModel `loadStudents()`, Repository `getStudents(callback)`, Remote DS `api.getUsers().enqueue(…)`, REST API `GET /users?limit=10` | 60 |
-| 2 | `flowArrow` (response) + `pulse` + `shapeShift` | Panah `--arrow-state` dari REST API ke UI, label "Response / State". Caption berganti sesuai wujud data: REST API "JSON (teks)", Remote DS `Result<List<UserDto>>`, Repository `Result<List<Student>>`, ViewModel `HomeUiState`, UI "dirender" | 60 |
-| 3 | `arcForbidden` #1 | Panah dan caption memudar. Busur putus-putus dari UI langsung ke Remote DS (`StudentApiService`), tanda silang merah (`--err`) di tengah busur. Teks: "UI dilarang memanggil Retrofit atau `StudentApiService`". Teks kecil mono: "HomeScreen/DetailScreen tidak boleh mengimpor `retrofit2`" | 30 |
-| 4 | `arcForbidden` #2 | Busur kedua dari ViewModel langsung ke Remote DS (melompati Repository), tanda silang merah. Teks: "ViewModel meminta data lewat Repository, bukan langsung ke Remote Data Source". Busur pertama tetap tampil (redup) | 30 |
+**Narasi Dosen:**
 
-**Narasi:**
-- Stop 0: "Lima layer, satu arah. Event bergerak ke kanan, response bergerak ke kiri."
-- Stop 1: "Event dari layar turun lapis demi lapis. Hanya Remote Data Source yang menyentuh Retrofit dan benar-benar memanggil server."
-- Stop 2: "Responsnya naik, dan wujudnya berubah di tiap layer: teks JSON, lalu DTO, lalu Student, lalu state, lalu piksel di layar."
-- Stop 3: "Godaan terbesar: memanggil Retrofit langsung dari layar. Dilarang. Cek mudahnya: `HomeScreen` tidak boleh mengimpor `retrofit2` atau `StudentApiService`."
-- Stop 4: "ViewModel juga tidak boleh melompati Repository. Repository tetap satu-satunya pintu akses data."
+- Stop 0: _"Di Modul 07 kita belajar bahwa Main Thread tidak boleh di-block oleh operasi jaringan. Solusi awalnya adalah callback: seperti kasir memberi buzzer antrean kepada pembeli."[cite: 11, 26]_
+- Stop 1: _"Namun callback punya titik jenuh. Pertama: pembalikan alur pikir. Otak manusia membaca kode dari atas ke bawah, tetapi callback memaksa kita melompat ke dalam kurung kurawal masa depan."[cite: 11]_
+- Stop 2: _"Kedua: callback hell. Begitu kita butuh request data yang saling bergantung secara berurutan, kodenya menjorok ke kanan membentuk piramida yang mengerikan."[cite: 11]_
+- Stop 3: _"Yang paling berbahaya: callback itu buta siklus hidup. Ketika pengguna menekan tombol Back dan layar ditutup, callback jaringan yang baru selesai tetap berusaha menyentuh UI yang sudah mati. Kita butuh solusi yang lebih cerdas."[cite: 11]_
 
-## Scene 4 — Transformasi DTO ke Student
-**Tujuan:** membedakan kontrak API yang kaku (DTO) dari model yang dibutuhkan aplikasi (`Student`).
+---
 
-**Layout:** tiga kolom: JSON (x=80, lebar 580), DTO (x=750, lebar 520), Student (x=1360, lebar 480). Kode JSON mono 24px (lihat `03`). Area bawah (y=620–980): kode mapper dan keterangan.
+## Scene 2 — Konsep Suspend & Analogi Pembatas Buku
 
-| Stop | Aksi | Yang tampil | Frames |
-|---|---|---|---|
-| 0 | `sceneIn` | Kolom kiri: JSON ringkas (14 baris) dengan banyak field. Caption: "JSON mentah: banyak field, tidak semuanya dibutuhkan" | 24 |
-| 1 | `fieldLight` | Muncul kotak `UserResponse(users, total, skip, limit)` di kolom tengah atas. Pada JSON, `users` menyala ke `List<UserDto>`; `total`, `skip`, `limit` menyala dengan label "metadata paging, milik pembungkus" | 30 |
-| 2 | `fieldLight` | Muncul `UserDto(id, firstName, lastName, email, university)`. Hanya 5 field itu yang menyala di JSON; `age`, `phone`, `address`, dst. meredup dengan label "tidak dipakai". Keterangan: `data/remote/dto` | 30 |
-| 3 | `gateMerge` | Gerbang `toStudent()` di antara kolom tengah dan kanan. `firstName` dan `lastName` bergabung menjadi `name` ("Emily Johnson"); `id`, `email`, `university` lewat apa adanya. Keluar kartu `Student(id, name, email, university)`. Kode mapper (`03`) muncul di bawah | 36 |
-| 4 | `layerTag` | Penanda lapisan: ikon kotak **Repository** (hijau) menyala di atas gerbang dengan teks "Repository yang memetakan DTO → Student". Tiga poin (42px): "UI hanya mengenal Student" · "API berubah? cukup ubah DTO + mapper" · "Student sudah berubah dari program/year menjadi email/university" | 30 |
+**Tujuan**: Memperkenalkan kata kunci `suspend` sebagai mekanisme penangguhan kooperatif (_pause & resume_) yang menjaga penulisan kode tetap linear tanpa memblokir thread[cite: 10, 11].
 
-**Narasi:**
-- Stop 0: "Server mengirim banyak field. Aplikasi kita hanya butuh sebagian."
-- Stop 1: "Pembungkusnya `UserResponse`. Perhatikan: `total`, `skip`, dan `limit` milik pembungkus ini, bukan milik tiap user."
-- Stop 2: "`UserDto` hanya memilih lima field yang kita butuhkan. Bentuknya mengikuti kontrak API, makanya ia tinggal di folder `data/remote/dto`."
-- Stop 3: "Mapper `toStudent()` menggabungkan nama depan dan belakang, lalu menghasilkan `Student`, model yang dipakai aplikasi."
-- Stop 4: "Yang memanggil mapper adalah Repository. UI hanya pernah melihat `Student`, jadi kalau kontrak API berubah, yang disentuh hanya DTO dan mapper."
+**Layout**:
 
-## Scene 5 — Callback Asinkron
-**Tujuan:** alasan memakai `Call.enqueue` dan cara hasilnya kembali sebagai `Result`.
+- Judul scene di atas: _"Kotlin Coroutines: Pause & Resume Tanpa Memblokir"_[cite: 10, 11].
+- Dua jendela editor berdampingan ($y = 220\text{px}$, tinggi 640px, masing-masing lebar 840px)[cite: 11, 30]:
+  - Kiri: Callback Modul 07 (`COMPARE_CALLBACK`)[cite: 11, 27].
+  - Kanan: Coroutine Modul 08 (`COMPARE_COROUTINE`)[cite: 11, 27].
+- Jalur visualisasi Main Thread di bagian bawah ($y = 900\text{px}$)[cite: 26, 30].
 
-**Layout:** atas (y=80–470): dua lajur waktu kiri→kanan: **Jalur utama (UI)** dan **Jalur jaringan**. Bawah (y=500–960): panel kode (`03`), tinggi ±460, tanpa header.
+| Stop | Aksi                           | Yang Tampil di Layar                                                                                                                                                                                                                                                                                                                                                      | Frames |
+| ---- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 0    | `sceneIn`                      | Perbandingan berdampingan (Gambar 1 Modul 08)[cite: 11]. Editor kiri: blok `repository.getStudents { result -> ... }` dengan lambda `onSuccess` & `onFailure`[cite: 11, 27]. Editor kanan: `viewModelScope.launch { val data = repository.getStudents(); updateUi(data) }`[cite: 11, 27]. Teks bawah: "Gaya sekuensial linear, perilaku asinkron non-blocking."[cite: 11] | 24     |
+| 1    | `bookmarkPause` + `laneBranch` | Fokus membesar pada editor kanan. Saat baris `val data = repository.getStudents()` dieksekusi, ornamen pita emas **Pembatas Buku (`--c-bookmark`)** menancap pada baris tersebut[cite: 11, 15]. Garis Main Thread di bawah tetap berjalan lancar menggambar UI (chip `UI Responsif`). Badge status: _"Thread Dilepas (Suspended)"_[cite: 10, 11].                         | 36     |
+| 2    | `bookmarkResume` + `pulse`     | Paket data dari server tiba di latar belakang[cite: 26, 29]. Pita emas pembatas buku terangkat dengan efek kilau halus. Eksekusi berlanjut persis di baris berikutnya: `updateUi(data)` dipanggil secara sekuensial[cite: 11]. Badge status: _"Melanjutkan Eksekusi (Resumed)"_[cite: 10, 11].                                                                            | 36     |
+| 3    | `codePanel` swap               | Editor kanan berganti menampilkan fungsi lengkap dengan blok `try-catch` alami: `try { val data = repository.getStudents(); updateUi(data) } catch (e: Exception) { showError(e) }`[cite: 11, 15]. Teks penjelas: "Tidak ada lagi pembungkus `Result.success` / `Result.failure`. Penanganan error kembali ke sintaksis alami bahasa Kotlin."[cite: 11, 15]               | 30     |
+| 4    | `popIn` + `layerTag`           | Kotak penegasan arsitektur muncul di bawah: **"Mitos Dispatchers.IO pada Retrofit"**[cite: 14]. Kode `StudentRemoteDataSource` disorot[cite: 14]. Teks: "Retrofit suspend sudah secara otomatis aman dijalankan di Main Thread (_main-safe_). Dilarang membungkus panggilan Retrofit dengan `withContext(Dispatchers.IO)`."[cite: 14]                                     | 24     |
 
-| Stop | Aksi | Yang tampil | Frames |
-|---|---|---|---|
-| 0 | `sceneIn` | Dua lajur kosong, judul "Kenapa memakai enqueue?". Lajur utama berisi balok-balok "gambar layar" yang berjalan (progres) | 24 |
-| 1 | `freezeLane` | Contoh SALAH: permintaan ditunggu di jalur utama. Lajur utama tersumbat (belang merah) dengan ikon beku dan label "UI membeku". Panel kode: contoh `execute()` (`03`) berlabel SALAH. Teks: "Di Android memicu NetworkOnMainThreadException" | 36 |
-| 2 | `laneBranch` | Contoh BENAR: permintaan bercabang turun ke jalur jaringan, jalur utama terus berjalan dengan chip "isLoading = true" dan spinner. Panel kode: `isLoading = true` lalu `repository.getStudents { … }` (`03`). Label "non-blocking" | 36 |
-| 3 | `doorFork` | Ujung jalur jaringan bercabang menjadi dua pintu: **onResponse** ("server membalas, apa pun status-nya") dan **onFailure** ("gagal sebelum ada balasan, mis. internet mati"). Panel kode: kode `enqueue` penuh, baris kunci 2 dan 10 | 36 |
-| 4 | `gateCheck` | Di pintu onResponse muncul gerbang `isSuccessful && body != null`. Lolos → jalur `--ok` ke `Result.success(body.users)`. Tidak lolos (mis. HTTP 404) → jalur `--err` ke `Result.failure("HTTP 404")`. Pintu onFailure → `Result.failure(t)`. Semua jalur gagal bermuara ke satu keranjang `Result.failure`. Panel: baris kunci 4, 5, 7 | 36 |
-| 5 | `laneReturn` | Hasil `Result` melompat balik ke jalur utama menjadi pembaruan `uiState`. Teks: "Callback mengembalikan hasil; ViewModel memperbarui state; layar digambar ulang". Panel kode: `onSuccess`/`onFailure` pada ViewModel, baris kunci 3 dan 5 | 36 |
+**Narasi Dosen:**
 
-**Narasi:**
-- Stop 0: "Permintaan ke internet butuh waktu: bisa detik, bisa gagal. Bagaimana aplikasi menunggunya?"
-- Stop 1: "Kalau jalur utama ikut menunggu, layar membeku. Di Android ini bahkan bisa membuat aplikasi crash."
-- Stop 2: "Dengan `enqueue`, permintaan berjalan di jalur sendiri. Layar tetap hidup dan menampilkan loading."
-- Stop 3: "Ketika selesai, hasilnya masuk lewat salah satu dari dua pintu: `onResponse` atau `onFailure`."
-- Stop 4: "Hati-hati: `onResponse` bukan berarti sukses. Status 404 juga masuk sini. Kita cek `isSuccessful` dan body. Semua kegagalan, dari mana pun asalnya, dibungkus menjadi satu bentuk: `Result.failure`."
-- Stop 5: "Hasil itu kembali ke jalur utama, ViewModel memperbarui state, dan layar digambar ulang. Callback ini bersifat sementara; di materi berikutnya digantikan Coroutines dan Flow."
+- Stop 0: _"Perhatikan Gambar 1 dari modul praktikum kita. Di sebelah kiri adalah kode callback Modul 07, di sebelah kanan adalah Coroutine. Keduanya sama-sama asinkron dan non-blocking, tetapi coroutine dibaca lurus dari atas ke bawah."[cite: 11]_
+- Stop 1: _"Bagaimana coroutine bekerja tanpa memblokir thread? Ingat analogi Pembatas Buku. Saat fungsi suspend dipanggil, coroutine menaruh pembatas buku di baris itu, lalu melepaskan thread agar bisa dipakai menggambar UI."[cite: 10, 11]_
+- Stop 2: _"Begitu internet selesai mengunduh data, pembatas buku diangkat dan eksekusi dilanjutkan tepat di baris berikutnya. Kode yang tadinya asinkron terasa seperti kode biasa."[cite: 10, 11]_
+- Stop 3: _"Keuntungan besarnya: kita tidak perlu lagi membungkus kode dengan Result.onSuccess atau onFailure. Penanganan error kembali menggunakan try-catch yang sudah sangat kita kenal."[cite: 11, 15]_
+- Stop 4: _"Catatan penting dari modul: fungsi suspend milik Retrofit sudah main-safe secara bawaan. Jangan latah menambahkan withContext(Dispatchers.IO) untuk panggilan API Retrofit."[cite: 14]_
 
-## Scene 6 — Tiga Kondisi Layar
-**Tujuan:** layar tidak boleh mengira data selalu ada.
+---
 
-**Layout:** kiri mockup ponsel (x=140, y=120, 440×800). Kanan (x=680, lebar 1160): panel state (y=120, tinggi ±220) dan panel `when` (y=370, tinggi ±520). Cabang `when` yang aktif disorot (`keyLines`).
+## Scene 3 — Disiplin Structured Concurrency (`viewModelScope`)
 
-| Stop | Aksi | Yang tampil | Frames |
-|---|---|---|---|
-| 0 | `sceneIn` | Ponsel kosong (bar "Home"). Panel state: `HomeUiState()` bawaan. Panel `when` tanpa sorotan. Judul "Layar tidak boleh mengira data selalu ada" | 24 |
-| 1 | `phoneState` | **Loading.** Ponsel: spinner berputar di tengah. Panel state: `isLoading = true`. Cabang 1 menyala | 30 |
-| 2 | `phoneState` | **Error (internet mati).** Chip `WifiOff`. Ponsel: teks error + tombol "Coba Lagi". State: `isLoading = false`, `errorMessage = "Unable to resolve host…"`. Cabang 2 menyala | 30 |
-| 3 | `phoneState` + `tap` | **Coba Lagi ditekan.** Tombol berkedip (riak), lalu kembali ke loading. State: `uiState.copy(isLoading = true, errorMessage = null)`. Callout: `onRetry = homeViewModel::loadStudents`. Cabang 1 menyala | 24 |
-| 4 | `phoneState` | **Sukses.** Ponsel: daftar baris "1 - Emily Johnson" dst. (LazyColumn). State: `students = [10 item]`, `isLoading = false`, `errorMessage = null`. Cabang 3 menyala | 30 |
+**Tujuan**: Memahami hierarki lifecycle pembatalan otomatis coroutine pada `ViewModel` serta aturan mutlak penanganan `CancellationException`[cite: 10, 11, 15, 16].
 
-**Narasi:**
-- Stop 0: "Layar tidak boleh mengira datanya selalu ada. State kita punya tiga kemungkinan: loading, error, dan data."
-- Stop 1: "Saat request berjalan, `isLoading` true, dan layar menampilkan spinner. Urutan cabang `when` penting: loading dicek paling dulu."
-- Stop 2: "Internet mati: pesan masuk ke `errorMessage` dan layar menampilkan error beserta tombol Coba Lagi."
-- Stop 3: "Tekan Coba Lagi: state kembali ke loading dan request diulang."
-- Stop 4: "Sukses: `students` terisi dan `LazyColumn` menampilkan daftar. UI hanya membaca state."
+**Layout**:
 
-## Scene 7 — Dari Mana Error Berasal? (pendukung)
-**Tujuan:** memetakan gejala di tabel troubleshooting modul ke tempat terjadinya. Boleh dipangkas.
+- Judul scene di atas: _"Structured Concurrency & Batas Siklus Hidup"_[cite: 10, 11].
+- Kiri ($x = 80\text{px}$, lebar 800px): Pohon hierarki induk-anak (_Parent-Child Scope Tree_) antara `ViewModel`, `viewModelScope`, dan _Coroutine Job_[cite: 11, 16].
+- Kanan ($x = 940\text{px}$, lebar 900px): Panel kode Dracula menampilkan implementasi `loadStudents()` di `HomeViewModel.kt`[cite: 15, 30].
 
-**Layout:** baris atas 5 kotak ringkas (320×90, y=80). Bagian tengah (y=210–520): dua pintu (onResponse dengan gerbang `isSuccessful`, onFailure) dan keranjang hasil `Result.success`/`Result.failure`. Bawah (y=560–960): kartu gejala dan kartu perbaikan.
+| Stop | Aksi                       | Yang Tampil di Layar                                                                                                                                                                                                                                                                                                                                                                                                                                         | Frames |
+| ---- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| 0    | `sceneIn`                  | Pohon hierarki di kiri: kotak induk `HomeViewModel` menaungi lingkaran `viewModelScope`[cite: 15, 16]. Panel kanan: deklarasi `class HomeViewModel : ViewModel()` dan pemanggilan fungsi[cite: 15]. Teks bawah: "Coroutine tidak boleh bekerja secara liar tanpa batas lifecycle."[cite: 10, 11]                                                                                                                                                             | 24     |
+| 1    | `flowArrow` + `popIn`      | Di dalam `viewModelScope`, cabang pekerjaan `launch { ... }` terbentuk (Job #1: Ambil Mahasiswa)[cite: 15]. Node pekerjaan berdenyut hijau (`--ok`). Panel kanan menyorot baris `viewModelScope.launch { ... }`[cite: 15]. Teks: "Pekerjaan asinkron terikat kuat pada siklus hidup ViewModel penampungnya."[cite: 11, 16]                                                                                                                                   | 30     |
+| 2    | `focusBox` + `laserCut`    | Simulasi pengguna menekan tombol Back pada ponsel: `HomeViewModel` hancur (`onCleared` dipicu)[cite: 16]. Garis pembatalan neon menyapu pohon hierarki: `viewModelScope` dibersihkan, dan Job #1 seketika dibatalkan secara otomatis[cite: 16]. Teks: "Pekerjaan dibatalkan otomatis saat ViewModel dibersihkan. Memory leak tereliminasi."[cite: 11, 16]                                                                                                    | 30     |
+| 3    | `codePanel` swap + `pulse` | Panel kanan menampilkan contoh blok catch yang SALAH: `catch (e: Exception) { _uiState.value = HomeUiState(errorMessage = e.message) }`[cite: 15, 21]. Peringatan bahaya merah berkedip: _"Peringatan: CancellationException ikut tertelan!"_[cite: 18, 21] Teks: "Ketika pekerjaan dibatalkan, Kotlin melempar CancellationException. Jika ditelan oleh catch Exception umum, mekanisme pembatalan terganggu dan UI menampilkan error palsu."[cite: 18, 21] | 36     |
+| 4    | `keyLines` + `layerTag`    | Panel kanan diperbarui dengan kode BENAR Modul 08: baris `catch (e: CancellationException) { throw e }` menyala terang di atas `catch (e: Exception)`[cite: 15, 18]. Chip verifikasi hijau muncul: _"Structured Cancellation Terjaga"_[cite: 21]. Teks: "Aturan mutlak: tangkap dan lempar ulang (throw) CancellationException agar coroutine berhenti dengan bersih."[cite: 15, 18, 21]                                                                     | 30     |
 
-| Stop | Aksi | Yang tampil | Frames |
-|---|---|---|---|
-| 0 | `sceneIn` | Peta kosong. Judul "Dari mana error berasal?" Teks bawah: "Apa pun penyebabnya, ujungnya `Result.failure` → `errorMessage` → layar error + Coba Lagi" | 24 |
-| 1 | `symptomDrop` | Chip `UnknownHostException` jatuh ke pintu **onFailure**. Perbaikan: "Cek koneksi internet dan permission INTERNET" | 30 |
-| 2 | `symptomDrop` | Chip `HTTP 404` jatuh ke pintu **onResponse**, gerbang `isSuccessful = false`. Perbaikan: "Cek base URL, path @GET, @Path, dan ID" | 30 |
-| 3 | `symptomDrop` | Chip `Expected BEGIN_OBJECT…` menyorot kotak Remote DS (Gson/DTO), lalu jatuh ke **onFailure**. Perbaikan: "Samakan DTO dengan struktur JSON" | 30 |
-| 4 | `symptomDrop` | Chip `Cleartext HTTP traffic not permitted` jatuh ke **onFailure**. Perbaikan: "Gunakan endpoint HTTPS" | 30 |
+**Narasi Dosen:**
 
-**Narasi:** Stop 1–4: satu kalimat per gejala: lokasi terjadinya, pintu yang dilalui, dan perbaikannya. Penutup di Stop 4: "Semua jalan menuju satu bentuk, `Result.failure`, jadi layar cukup punya satu cabang error."
+- Stop 0: _"Di dunia Android modern, kita menerapkan Structured Concurrency. Setiap coroutine wajib memiliki atasan yang bertanggung jawab terhadap siklus hidupnya."[cite: 11]_
+- Stop 1: _"Pada arsitektur aplikasi kita, atasan itu adalah viewModelScope. Saat ViewModel memanggil viewModelScope.launch, ia melahirkan pekerjaan anak yang terpantau."[cite: 11, 15, 16]_
+- Stop 2: _"Ketika pengguna menekan Back dan layar ditutup, ViewModel dihancurkan. Secara otomatis, viewModelScope membatalkan seluruh request jaringan yang masih berjalan. Tidak ada memory leak, tidak ada crash."[cite: 11, 16]_
+- Stop 3: _"Namun ada jebakan fatal yang sering dilakukan mahasiswa: menulis catch (e: Exception) biasa. Padahal, pembatalan coroutine bekerja dengan cara melempar CancellationException di balik layar."[cite: 18, 21]_
+- Stop 4: _"Jika exception itu tertelan, coroutine mengira terjadi error jaringan biasa dan menampilkan pesan gagal di layar. Modul 08 mewajibkan: tangkap CancellationException secara terpisah dan lempar kembali dengan throw e."[cite: 15, 18, 21]_
 
-## Scene 8 — Peta Perubahan dan Jembatan (pendukung penutup)
-**Tujuan:** membuktikan janji Modul 06 dan menyiapkan materi berikutnya.
+---
 
-**Layout:** sama dengan Modul 06 Scene 6, tetapi 5 kotak slot (320×110, y=80), lencana status (y=198), banner (y=276), panel diff (x=80, y=372, 1760×600).
+## Scene 4 — Penampung State: `StateFlow` & Lifecycle-Aware
 
-| Stop | Aksi | Yang tampil | Frames |
-|---|---|---|---|
-| 0 | `sceneIn` | Baris kotak. Banner: "Apa yang berubah dari Modul 06?". Panel berisi teks "Kita periksa lapis demi lapis, dari bawah ke atas" | 24 |
-| 1 | `focusBox` + `diffPanel` | Kotak Remote Data Source menyala, lencana "diganti". Banner: "Data Source → Remote Data Source". Diff `DIFFS[0]` | 30 |
-| 2 | `focusBox` + `diffPanel` | Repository, lencana "menyesuaikan". Banner: "Repository: kontrak jadi asinkron + memetakan DTO". Diff `DIFFS[1]` | 30 |
-| 3 | `focusBox` + `diffPanel` | ViewModel, lencana "menyesuaikan". Banner: "ViewModel: ikut asinkron, mengelola loading dan error". Diff `DIFFS[2]` | 30 |
-| 4 | `focusBox` + `diffPanel` | UI, lencana "hampir tetap". Banner: "UI: tidak mengenal Retrofit, hanya render state". Diff `DIFFS[3]` | 30 |
-| 5 | `summaryPanel` | Semua kotak terang. Kotak REST API berlencana "baru". Panel dua kolom **Berubah** vs **Tetap** (`03`). Baris bawah: "Berikutnya: callback → Kotlin Coroutines & Flow" (label, tanpa kode) | 30 |
+**Tujuan**: Memahami evolusi state holder dari `mutableStateOf` ke `StateFlow`, pentingnya enkapsulasi hak akses, dan penggunaan `collectAsStateWithLifecycle()` di Compose[cite: 10, 11, 15, 16].
 
-**Narasi:**
-- Stop 1–4: satu kalimat per lapisan sesuai banner; tegaskan bahwa perubahan merambat hanya sejauh kebutuhan asinkron, dan UI tidak pernah mengimpor Retrofit.
-- Stop 5: "Janji Modul 06 terbukti: perubahan terlokalisasi, UI tidak mengenal Retrofit, dan navigasi Home, Detail, Back tidak berubah. Callback ini sementara; berikutnya kita sederhanakan dengan Coroutines dan Flow."
+**Layout**:
+
+- Judul scene di atas: _"Evolusi State: Dari Compose State ke StateFlow"_[cite: 10, 11].
+- Area kiri ($x = 80\text{px}$, lebar 860px): Diagram kotak enkapsulasi di ViewModel dan konektor aliran data reaktif[cite: 13, 15].
+- Area kanan ($x = 980\text{px}$, lebar 860px): Mockup ponsel Compose berdampingan dengan panel kode `HomeScreen.kt`[cite: 16, 26, 30].
+
+| Stop | Aksi                        | Yang Tampil di Layar                                                                                                                                                                                                                                                                                                                                                         | Frames |
+| ---- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 0    | `sceneIn`                   | Rekap Modul 07: `mutableStateOf` di dalam ViewModel[cite: 15]. Kotak penjelas: "Di Modul 07 state terikat langsung ke pustaka Compose runtime di dalam ViewModel. Di Modul 08 kita meningkatkan state menjadi aliran standar Kotlin Coroutines: `StateFlow`."[cite: 10, 11, 15]                                                                                              | 24     |
+| 1    | `splitBlock` + `fieldLight` | Diagram enkapsulasi di ViewModel muncul[cite: 15]:<br>- Lapisan dalam: `_uiState` berlabel merah `private val` bertipe `MutableStateFlow` (dapat diubah oleh ViewModel saja)[cite: 11, 15].<br>- Lapisan luar: `uiState` berlabel hijau `public val` bertipe `StateFlow` via `.asStateFlow()` (read-only untuk UI)[cite: 11, 15].                                            | 30     |
+| 2    | `arcForbidden` + `popIn`    | Garis akses langsung dari UI ke `_uiState.value` digambar dengan tanda silang merah (`--err`)[cite: 26, 29]. Teks: "Dilarang membaca `.value` secara statis di Composable UI. UI tidak akan merender ulang secara reaktif ketika ada emisi data baru."[cite: 11, 16]                                                                                                         | 30     |
+| 3    | `flowArrow` + `phoneState`  | Garis koneksi ungu (`--arrow-state`) menghubungkan `StateFlow` ke Composable `HomeScreen` melalui `collectAsStateWithLifecycle()`[cite: 11, 16, 28]. Mockup ponsel menyala terang menampilkan indikator status hijau: _"Lifecycle: STARTED / RESUMED (Koleksi Aktif)"_[cite: 11, 16]. Data profil mahasiswa tampil di layar ponsel[cite: 16, 26].                            | 36     |
+| 4    | `dim` + `layerTag`          | Ponsel dialihkan ke kondisi latar belakang (aplikasi di-minimize)[cite: 16]. Lampu indikator status meredup menjadi kuning: _"Lifecycle: STOPPED (Koleksi Dijeda)"_[cite: 16]. Aliran panah berhenti seketika. Teks: "`collectAsStateWithLifecycle()` menghentikan konsumsi data saat UI tidak terlihat di layar. Menghemat baterai dan siklus CPU perangkat."[cite: 11, 16] | 30     |
+
+**Narasi Dosen:**
+
+- Stop 0: _"Di Modul 07 kita memakai mutableStateOf. Namun untuk arsitektur yang bersih dan independen, penampung state di ViewModel kita ganti menjadi StateFlow."[cite: 10, 11, 15]_
+- Stop 1: _"Terapkan prinsip enkapsulasi: MutableStateFlow disimpan private dengan awalan underscore agar hanya ViewModel yang bisa mengubah nilai, sedangkan UI hanya menerima StateFlow yang bersifat read-only."[cite: 11, 15]_
+- Stop 2: _"Jangan sekali-kali membaca StateFlow dengan memanggil .value langsung di dalam Composable. Nilai itu hanya dibaca satu kali dan antarmuka kalian tidak akan ter-update ketika data baru tiba."[cite: 11, 16]_
+- Stop 3: _"Cara yang benar adalah mengoleksinya menggunakan collectAsStateWithLifecycle(). Selama layar aktif berada di depan pengguna, setiap perubahan state akan langsung dirender menjadi piksel."[cite: 11, 16]_
+- Stop 4: _"Hebatnya fungsi ini: begitu pengguna memencet tombol Home dan aplikasi masuk ke background, koleksi state langsung dihentikan otomatis. Baterai pengguna tidak terkuras sia-sia."[cite: 11, 16]_
+
+---
+
+## Scene 5 — Aliran Data Reaktif (Pencarian Otomatis dengan Flow)
+
+**Tujuan**: Membedakan transaksi _one-shot_ dengan _data stream_, lalu membedah pipeline operator Flow pada pencarian reaktif (Gambar 3 Modul 08)[cite: 10, 11, 17].
+
+**Layout**:
+
+- Judul scene di atas: _"Pencarian Reaktif: Mengalirkan Data Lewat Pipa Flow"_[cite: 10, 17].
+- Rel Konveyor Pipa Aliran (Gambar 3 Modul 08) di tengah ($y = 260\text{px}$ sampai $y = 560\text{px}$, 7 node lingkaran huruf A–G)[cite: 17]:
+  - ① Node A: `"j"` $\rightarrow$ ② Node B: `"ja"` $\rightarrow$ ③ Node C: `"john"` $\rightarrow$ ④ Node D: `debounce(500)` $\rightarrow$ ⑤ Node E: `collectLatest` $\rightarrow$ ⑥ Node F: `searchStudents()` $\rightarrow$ ⑦ Node G: `HomeUiState`[cite: 17].
+- Panel kode `observeSearch()` di bawah ($y = 600\text{px}$, tinggi 380px)[cite: 18, 30].
+
+| Stop | Aksi                            | Yang Tampil di Layar                                                                                                                                                                                                                                                                                                                                                                    | Frames |
+| ---- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 0    | `sceneIn`                       | Judul dan perbandingan konsep: **Operasi One-Shot** (ambil list/detail cukup satu fungsi `suspend`) vs **Aliran Reaktif / Stream** (ketikan teks pencarian yang terus memancar dari waktu ke waktu membutuhkan `Flow`)[cite: 10, 11]. Rel pipa 7 stasiun muncul dalam kondisi nonaktif[cite: 17]. Tombol "Cari" Modul 07 diberi tanda silang (dihapus)[cite: 18].                       | 24     |
+| 1    | `packetFly` + `pipeStream`      | Pengguna mengetik cepat di TextField: partikel teks `"j"`, `"ja"`, dan `"john"` memancar dari `searchQuery` menuju pipa Flow (Node A, B, dan C aktif berurutan)[cite: 17, 18, 29]. Panel kode menyorot `searchQuery.debounce(500)`[cite: 18].                                                                                                                                           | 30     |
+| 2    | `debounceHold`                  | Partikel `"j"` dan `"ja"` tertahan dan melebur di gerbang Node D (**debounce 500 ms**)[cite: 17]. Jam pasir animasi berputar selama 500 ms[cite: 17, 18]. Teks: "Debounce menahan eksekusi. Selama pengguna masih terus mengetik sebelum 500 ms berlalu, tidak ada request jaringan yang dikirim."[cite: 17, 18]                                                                        | 36     |
+| 3    | `pulse` + `gateCheck`           | Pengguna berhenti mengetik kata `"john"`[cite: 17, 18]. Filter `distinctUntilChanged()` memeriksa teks: lolos karena berbeda dari query sebelumnya[cite: 17, 18]. Partikel `"john"` meluncur melewati Node D menuju Node E (`collectLatest`)[cite: 17].                                                                                                                                 | 30     |
+| 4    | `cancelBurst` + `collectCancel` | Skenario pembatalan: ketika sebuah request lama untuk query `"joh"` masih menunggu balasan server, partikel baru `"john"` tiba di `collectLatest`[cite: 17, 19]. Request lama meledak/padam seketika (`cancelBurst`), dan blok eksekusi digantikan oleh query terbaru[cite: 17, 19]. Teks: "`collectLatest` membatalkan pekerjaan sebelumnya bila nilai baru datang."[cite: 11, 17, 19] | 36     |
+| 5    | `flowArrow` + `phoneState`      | Partikel `"john"` masuk ke Node F (`repository.searchStudents("john")`), lalu menghasilkan Node G (`HomeUiState` dengan daftar profil hasil pencarian)[cite: 17, 18]. Mockup ponsel menampilkan kartu mahasiswa Emily Johnson dan kawan-kawan secara otomatis tanpa sentuhan tombol[cite: 18, 26].                                                                                      | 30     |
+
+**Narasi Dosen:**
+
+- Stop 0: _"Untuk memuat data profil atau detail, kita cukup memakai suspend function karena transaksinya one-shot: minta sekali, terima sekali, selesai. Tetapi bagaimana dengan fitur pencarian teks yang terus mengalir huruf demi huruf? Di sinilah Flow berperan sebagai pipa air reaktif."[cite: 10, 11]_
+- Stop 1: _"Lihat Gambar 3 dari modul. Tombol Cari manual dari Modul 07 kita buang. Sekarang, setiap perubahan huruf di TextField langsung memancarkan nilai baru ke dalam pipa Flow."[cite: 17, 18]_
+- Stop 2: _"Bayangkan jika setiap huruf langsung menembak server: server DummyJSON akan kewalahan. Operator debounce(500) bertindak sebagai bendungan yang menahan air sampai pengguna berhenti mengetik selama setengah detik."[cite: 17, 18]_
+- Stop 3: _"Operator distinctUntilChanged memastikan kita tidak memproses kata yang sama berulang kali bila teksnya tidak berubah."[cite: 17, 18]_
+- Stop 4: _"Inilah keajaiban collectLatest: jika request lama belum selesai dan pengguna mengetik huruf baru, request lama langsung dibatalkan secara bersih. Aplikasi hanya mengolah hasil yang paling relevan."[cite: 11, 17, 19]_
+- Stop 5: _"Hasil pencarian mengalir langsung ke HomeUiState dan layar ter-update otomatis. Bersih, reaktif, dan sangat hemat kuota internet."[cite: 17, 18]_
+
+---
+
+## Scene 6 — Peta Refactoring & Jembatan ke Modul 09
+
+**Tujuan**: Memeriksa perubahan kode sebelum vs sesudah pada seluruh lapisan dan membuktikan janji arsitektur Modul 08 sebelum melangkah ke penyimpanan lokal Room Database[cite: 13, 20, 21].
+
+**Layout**:
+
+- Baris atas ($y = 80\text{px}$): 5 kotak lapisan arsitektur (lebar 320px)[cite: 26, 30].
+- Lencana status ($y = 200\text{px}$): Penanda status tiap lapisan (`⚡ DIUBAH` / `✓ TETAP`)[cite: 26, 30].
+- Banner judul refactoring ($y = 270\text{px}$)[cite: 26].
+- Panel Visual Diff ($x = 80\text{px}$, $y = 360\text{px}$, dimensi $1760 \times 620\text{px}$)[cite: 26, 30].
+
+| Stop | Aksi                     | Yang Tampil di Layar                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Frames |
+| ---- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| 0    | `sceneIn`                | Kelima kotak lapisan tampil berjajar. Banner: _"Peta Perubahan: Dari Callback Modul 07 ke Coroutines & Flow Modul 08"_[cite: 10, 13, 26]. Panel menampilkan teks: "Kita periksa perbedaan kode di tiap lapisan, dari data layer paling bawah hingga presentation layer."[cite: 13, 26]                                                                                                                                                                                                                                                                                                                                                                                                                                         | 24     |
+| 1    | `focusBox` + `diffPanel` | Kotak **Remote Data Source** menyala (`⚡ DIUBAH`)[cite: 26, 30]. Banner: _"Remote Data Source: Menghapus Call & Callback, Murni Suspend"_[cite: 14, 26]. Panel diff menampilkan `DIFFS[0]`: baris `Call<UserResponse>` dan `enqueue` merah dihapus ($-$), digantikan fungsi satu baris `suspend fun getUsers() = api.getUsers().users` hijau ($+$)[cite: 14, 27].                                                                                                                                                                                                                                                                                                                                                             | 30     |
+| 2    | `focusBox` + `diffPanel` | Kotak **Repository** menyala (`⚡ DIUBAH`)[cite: 26, 30]. Banner: _"Repository: Kontrak Suspend & Pemetaan DTO ke Domain"_[cite: 15, 26]. Panel diff menampilkan `DIFFS[1]`: lambda callback dihapus, fungsi suspend memetakan DTO via `.map { it.toStudent() }` secara linear[cite: 15, 27].                                                                                                                                                                                                                                                                                                                                                                                                                                  | 30     |
+| 3    | `focusBox` + `diffPanel` | Kotak **ViewModel** menyala (`⚡ DIUBAH`)[cite: 26, 30]. Banner: _"ViewModel: viewModelScope, StateFlow, dan Penanganan Error Alami"_[cite: 15, 26]. Panel diff menampilkan `DIFFS[2]`: migrasi `mutableStateOf` ke `MutableStateFlow` privat dan blok `try-catch` terstruktur dengan re-throw `CancellationException`[cite: 15, 27].                                                                                                                                                                                                                                                                                                                                                                                          | 30     |
+| 4    | `focusBox` + `diffPanel` | Kotak **Composable UI** menyala (`⚡ DIUBAH`)[cite: 26, 30]. Banner: _"UI Layer: Pengoleksian Sadar Daur Hidup & TextField Reaktif"_[cite: 16, 18, 26]. Panel diff menampilkan `DIFFS[3]`: pembacaan state via `collectAsStateWithLifecycle()`, penghapusan tombol cari manual, dan penghubungan langsung ke query Flow[cite: 16, 18, 27].                                                                                                                                                                                                                                                                                                                                                                                     | 30     |
+| 5    | `summaryPanel`           | Seluruh kotak menyala terang (`✓ TERPADU`)[cite: 26, 30]. Panel diff berganti menjadi tabel 2 kolom **Berubah vs Tetap** (`SUMMARY_ITEMS`)[cite: 26, 27]:<br>- **Berubah**: Call/enqueue $\rightarrow$ suspend, Result $\rightarrow$ try-catch, mutableStateOf $\rightarrow$ StateFlow, UI $\rightarrow$ collectAsStateWithLifecycle, Tombol cari $\rightarrow$ Flow pipeline[cite: 10, 11, 14, 15, 16, 18, 27].<br>- **Tetap**: Aliran dependency `UI → VM → Repo → RDS`, Model `Student(id, name, email, university)`, UI tidak mengenal Retrofit, Navigasi Home-Detail-Back[cite: 13, 20, 27].<br>Baris bawah emas: **"Berikutnya: Menyimpan Data Offline dengan Room Database & DataStore (Modul 09)"**[cite: 21, 26, 27]. | 30     |
+
+**Narasi Dosen:**
+
+- Stop 0: _"Mari kita rekap perubahan arsitektur aplikasi kita secara menyeluruh. Kita periksa lapis demi lapis apa yang berubah dan apa yang tetap."[cite: 13, 26]_
+- Stop 1: _"Di Remote Data Source, kode kita menyusut drastis. Call dan Callback resmi dibuang; fungsinya sekarang murni suspend satu baris."[cite: 14]_
+- Stop 2: _"Repository tidak lagi menerima fungsi callback lambda. Ia mengeksekusi suspend service lalu memetakan DTO ke Student secara elegan."[cite: 15]_
+- Stop 3: _"ViewModel kini sepenuhnya mengendalikan asinkron lewat viewModelScope. State dipegang oleh StateFlow dan error ditangani oleh blok try-catch yang aman dari pembatalan."[cite: 15]_
+- Stop 4: _"Di UI, Composable kita mengoleksi state secara hemat baterai dengan collectAsStateWithLifecycle, dan TextField langsung memicu pencarian otomatis."[cite: 16, 18]_
+- Stop 5: _"Janji arsitektur Android terbukti: kita merombak total paradigma komputasi asinkron, tetapi batasan lapisan antarmuka tetap kokoh. Coroutine dan Flow yang kalian kuasai hari ini akan menjadi senjata utama kita di Modul 09 saat kita menghubungkan aplikasi ke database lokal Room dan DataStore!"[cite: 13, 20, 21]_

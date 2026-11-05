@@ -119,7 +119,6 @@ export const JsonBlock: React.FC<JsonBlockProps> = ({
                       backgroundColor: lineBackground,
                       borderRadius: 4,
                       padding: "0 6px",
-                      transition: "background-color 0.2s ease, opacity 0.2s ease",
                     }}
                   >
                     {/* Line Number Gutter */}
